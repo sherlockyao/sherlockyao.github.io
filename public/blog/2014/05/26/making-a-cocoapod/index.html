@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>姚翔的部落格</title>
+  <title>Making a CocoaPod - 姚翔的部落格</title>
   <meta name="author" content="Sherlock Yao">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://sherlockyao.com/">
+  <link rel="canonical" href="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
    <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -61,15 +61,12 @@
 </nav> -->
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a></h1>
+      <h1 class="entry-title">Making a CocoaPod</h1>
     
     
       <p class="meta">
@@ -92,7 +89,7 @@
   </header>
 
 
-  <div class="entry-content"><p>最近想把自己正在做的iOS项目里的一个手势控制代码单独提出来以library的形式分享出去，本打算只是简单地在Github上建个public库然后把代码文件放上去，但作为一个“合格”的程序员，要时刻保持探索精神，所以打算做成时下流行的Cocopod公布出去。虽然要分享的代码作为一个pod还远不够格，但即使是菜鸟也应该为开源世界做点贡献，以下是随pod创建过程记录的一些notes，供大家参考。</p>
+<div class="entry-content"><p>最近想把自己正在做的iOS项目里的一个手势控制代码单独提出来以library的形式分享出去，本打算只是简单地在Github上建个public库然后把代码文件放上去，但作为一个“合格”的程序员，要时刻保持探索精神，所以打算做成时下流行的Cocopod公布出去。虽然要分享的代码作为一个pod还远不够格，但即使是菜鸟也应该为开源世界做点贡献，以下是随pod创建过程记录的一些notes，供大家参考。</p>
 
 <p>首先给出官方指导链接<a href="http://guides.cocoapods.org/making/making-a-cocoapod.html">Making a CocoaPod</a>，我基本就是参考这篇文章来操作的。</p>
 
@@ -151,22 +148,16 @@
 </div>
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/05/23/hello-blogging/">Hello Blogging</a></h1>
-    
-    
-      <p class="meta">
-        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
 
 
 
@@ -178,50 +169,38 @@
   
 
 
-<time datetime="2014-05-23T15:30:00+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2014</time>
-        
-      </p>
+<time datetime="2014-05-26T13:59:00+08:00" pubdate data-updated="true">May 26<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cocoapod/'>CocoaPod</a>, <a class='category' href='/blog/categories/ios/'>iOS</a>
+  
+</span>
+
+
+    </p>
     
-  </header>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/" >Tweet</a>
+  
+  
+  
+</div>
 
-
-  <div class="entry-content"><p>很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了，但仍抱有对持久写作的一丝希望，作为开篇，就简单说明一下如何建立自己的github.io blog。</p>
-
-<p>搭建的文档官方已经很完善了，这里就只给出链接，另外我用的是Octopress，所以文档是它家的，至于Markdown的话找了一篇简洁明了的：</p>
-
-<ul>
-<li><a href="https://pages.github.com/">Github Pages</a></li>
-<li><a href="http://octopress.org/docs/">Octopress</a></li>
-<li><a href="http://jianshu.io/p/q81RER">Markdown</a></li>
-</ul>
-
-
-<p>这里再赘述一下创建一篇博文的简单流程，以作备忘用：</p>
-
-<ol>
-<li><p>用下面的命令生成一篇新文章<br/>
-<code>rake new_post["Create A Post With Given Title"]</code></p></li>
-<li><p>书写完毕后，可以用以下命令预览<br/>
-<code>rake preview</code> or <code>rake watch</code></p></li>
-<li><p>确定要发布的时候就使用下面命令，它会将页面生成到source目录下同时push到master分支<br/>
-<code>rake generate</code> and <code>rake deploy</code></p></li>
-<li><p>最后别忘了把source分支的修改提交并push到git上<br/>
-<code>git commit -m'msg'</code> and <code>git push origin source</code></p></li>
-</ol>
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/05/23/hello-blogging/" title="Previous Post: Hello Blogging">&laquo; Hello Blogging</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
 </div>
-  
-  
 
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="archives">Blog Archives</a>
-    
-  </div>
-</div>
 <aside class="sidebar">
   
     <section>
@@ -251,6 +230,7 @@
 
   
 </aside>
+
 
     </div>
   </div>

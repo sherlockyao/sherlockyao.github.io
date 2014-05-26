@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[姚翔的部落格]]></title>
-  <link href="http://sherlockyao.com/atom.xml" rel="self"/>
+  <title><![CDATA[Category: iOS | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
   <updated>2014-05-26T17:47:38+08:00</updated>
   <id>http://sherlockyao.com/</id>
@@ -29,14 +29,11 @@
 </ul>
 
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  platform :ios, <span class="s1">&#39;6.0&#39;</span>
-</span><span class='line'>
-</span><span class='line'>  pod <span class="s2">&quot;SYDemoPod&quot;</span>, :path <span class="o">=</span>&gt; <span class="s2">&quot;../&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>```bash
+  platform :ios, &lsquo;6.0&rsquo;</p>
 
+<p>  pod &ldquo;SYDemoPod&rdquo;, :path => &ldquo;../&rdquo;
+```</p>
 
 <p>  现在我们就可以创建一个Example项目到那个文件夹里面，作为给其他用户演示如何使用我的这个库的示例项目。用XCode新建完项目，然后命令行<code>pod install</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>安装依赖，接着打开.workspace文件后你就可以coding你的示例代码了。</p>
 
@@ -47,23 +44,18 @@
 </ul>
 
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  <span class="c"># 这里的url就是对应你自己的pod的github链接</span>
-</span><span class='line'>  pod <span class="s1">&#39;SYDemoPod&#39;</span>, :git <span class="o">=</span>&gt; <span class="s1">&#39;https://example.com/URL/to/repo/SYDemoPod.git&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p><code>bash
+  # 这里的url就是对应你自己的pod的github链接
+  pod 'SYDemoPod', :git =&gt; 'https://example.com/URL/to/repo/SYDemoPod.git'
+</code></p>
 
 <p>  配置好后运行<code>pod install</code>或<code>pod update</code>，然后看看是否能正确添加依赖，如果没有任何问题，那就可以发布啦，依次使用以下命令即可：</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  rake release
-</span><span class='line'>
-</span><span class='line'>  pod trunk push SYDemoPod.podspec
-</span></code></pre></td></tr></table></div></figure>
+<p>```bash
+  rake release</p>
 
+<p>  pod trunk push SYDemoPod.podspec
+```</p>
 
 <p>另：如果执行<code>pod trunk push</code>命令时提示你要创建一个session，那就先<code>pod trunk register</code>先注册一下就可以了</p>
 <div class="footnotes">
@@ -75,38 +67,6 @@
 <p>笔者此时运行pod命令时，发现pod不是最新版本，所以升级到了0.32.1<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hello Blogging]]></title>
-    <link href="http://sherlockyao.com/blog/2014/05/23/hello-blogging/"/>
-    <updated>2014-05-23T15:30:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2014/05/23/hello-blogging</id>
-    <content type="html"><![CDATA[<p>很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了，但仍抱有对持久写作的一丝希望，作为开篇，就简单说明一下如何建立自己的github.io blog。</p>
-
-<p>搭建的文档官方已经很完善了，这里就只给出链接，另外我用的是Octopress，所以文档是它家的，至于Markdown的话找了一篇简洁明了的：</p>
-
-<ul>
-<li><a href="https://pages.github.com/">Github Pages</a></li>
-<li><a href="http://octopress.org/docs/">Octopress</a></li>
-<li><a href="http://jianshu.io/p/q81RER">Markdown</a></li>
-</ul>
-
-
-<p>这里再赘述一下创建一篇博文的简单流程，以作备忘用：</p>
-
-<ol>
-<li><p>用下面的命令生成一篇新文章<br/>
-<code>rake new_post["Create A Post With Given Title"]</code></p></li>
-<li><p>书写完毕后，可以用以下命令预览<br/>
-<code>rake preview</code> or <code>rake watch</code></p></li>
-<li><p>确定要发布的时候就使用下面命令，它会将页面生成到source目录下同时push到master分支<br/>
-<code>rake generate</code> and <code>rake deploy</code></p></li>
-<li><p>最后别忘了把source分支的修改提交并push到git上<br/>
-<code>git commit -m'msg'</code> and <code>git push origin source</code></p></li>
-</ol>
 
 ]]></content>
   </entry>
