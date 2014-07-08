@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Hello Blogging - 姚翔的部落格</title>
+  <title>初识Docker - 姚翔的部落格</title>
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了， &hellip;">
+  <meta name="description" content="几天前通过同事知道了Docker这个工具，今天在工作的空暇时间打开了它的官网想进一步了解一下它，在完成了一个快速的练习教程后，惊奇地发现其优秀的功能，但却混乱了我的思维。弄清以及理解其原理一直我学新东西的方法，当然也是一种束缚，以致我在不清楚其原理前始终都会不得使用的要领， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://sherlockyao.com/blog/2014/05/23/hello-blogging/">
+  <link rel="canonical" href="http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
    <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -66,7 +66,7 @@
   
   <header>
     
-      <h1 class="entry-title">Hello Blogging</h1>
+      <h1 class="entry-title">初识Docker</h1>
     
     
       <p class="meta">
@@ -82,37 +82,24 @@
   
 
 
-<time datetime="2014-05-23T15:30:00+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2014</time>
+<time datetime="2014-07-08T17:47:00+08:00" pubdate data-updated="true">Jul 8<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了，但仍抱有对持久写作的一丝希望，作为开篇，就简单说明一下如何建立自己的github.io blog。</p>
+<div class="entry-content"><p>几天前通过同事知道了Docker这个工具，今天在工作的空暇时间打开了它的官网想进一步了解一下它，在完成了一个快速的练习教程后，惊奇地发现其优秀的功能，但却混乱了我的思维。弄清以及理解其原理一直我学新东西的方法，当然也是一种束缚，以致我在不清楚其原理前始终都会不得使用的要领，所以这一次我又开始了漫漫Google之路，想弄明白这个工具的概念到底是什么。</p>
 
-<p>搭建的文档官方已经很完善了，这里就只给出链接，另外我用的是Octopress，所以文档是它家的，至于Markdown的话找了一篇简洁明了的：</p>
+<p>结果不太理想，因为它的底层技术涉及到LXC和AUFS这些我完全了解的东西，所以在我写这篇文章的时候，脑中还处于一片迷雾之中。但我略微看清了一些它的轮廓，所以我想用自己的语言来描述一下我所见到的景象，以供那些和我一样初次接触Docker的人一些参考。</p>
 
-<ul>
-<li><a href="https://pages.github.com/">Github Pages</a></li>
-<li><a href="http://octopress.org/docs/">Octopress</a></li>
-<li><a href="http://jianshu.io/p/q81RER">Markdown</a></li>
-</ul>
+<p>首先让我把平时我们的开发工作比喻成一次表演（发布）的排练过程，有表演就涉及到舞台（运行环境），我们肯定希望最终的表演舞台同我们排练时使用的是相似的，这样才会达到最好的表演效果。但实际情况是，各个地点的场地都不一样，这样布置舞台（配置环境）就成为一个非常繁琐和痛苦的工作。</p>
 
+<p>Docker为我们提供了什么呢？它带来一个大大的集装箱。它告诉演出者（开发人员），让他们在这个集装箱的空间里进行排练，同时保证到时候所有演出场地都会有一个一模一样的集装箱场地。Docker又跑到各个场地，告诉那些承办方它将要放一个集装箱在场地上作为舞台，尺寸是多长多宽多高，他们要做的就是到时候腾出一块能放这个集装箱的空间就可以了。</p>
 
-<p>这里再赘述一下创建一篇博文的简单流程，以作备忘用：</p>
+<p>听起来似乎一切问题都解决了，但是演出者有些不满意，这个集装箱空空荡荡的，完全不像个舞台呀。没问题，Docker拿出了一本册子(Docker Hub)，里面有许许多多舞台模板，都是根据这个集装箱设计的，而且还有其他乐队贡献的他们设计的模板，完全不用担心。演出者们挑了好久，终于选择了一款自己喜欢的，但是仍然觉得不满意。这也没问题，你们可以自己再二次改造啊，只要把你们需要装修的步骤（Dockerfile）写下来就可以了。于是Docker把模板的布置步骤再加上演出者后期改进的装修步骤混合成一份新的施工说明书交给了各地的承办方。</p>
 
-<ol>
-<li><p>用下面的命令生成一篇新文章<br/>
-<code>rake new_post["Create A Post With Given Title"]</code></p></li>
-<li><p>书写完毕后，可以用以下命令预览<br/>
-<code>rake preview</code> or <code>rake watch</code></p></li>
-<li><p>确定要发布的时候就使用下面命令，它会将页面生成到source目录下同时push到master分支<br/>
-<code>rake generate</code> and <code>rake deploy</code></p></li>
-<li><p>最后别忘了把source分支的修改提交并push到git上<br/>
-<code>git commit -m'msg'</code> and <code>git push origin source</code></p></li>
-</ol>
-
+<p>一个个集装箱被运到了各个场地，工人们根据施工说明造出了一个个一模一样的集装箱舞台，和演出者们排练时用的完全一样。这下就真的不用担心演出效果和排练时不一样了。</p>
 </div>
 
 
@@ -135,15 +122,21 @@
   
 
 
-<time datetime="2014-05-23T15:30:00+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2014</time>
+<time datetime="2014-07-08T17:47:00+08:00" pubdate data-updated="true">Jul 8<span>th</span>, 2014</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/docker/'>Docker</a>
+  
+</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/05/23/hello-blogging/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/05/23/hello-blogging/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/" >Tweet</a>
   
   
   
@@ -152,8 +145,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/blog/2014/05/26/making-a-cocoapod/" title="Previous Post: Making a CocoaPod">&laquo; Making a CocoaPod</a>
       
-        <a class="basic-alignment right" href="/blog/2014/05/26/making-a-cocoapod/" title="Next Post: Making a CocoaPod">Making a CocoaPod &raquo;</a>
       
     </p>
   </footer>
