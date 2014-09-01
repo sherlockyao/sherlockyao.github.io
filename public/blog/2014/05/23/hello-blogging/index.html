@@ -84,6 +84,8 @@
 
 <time datetime="2014-05-23T15:30:00+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2014</time>
         
+         | <a href="#disqus_thread">Comments</a>
+        
       </p>
     
   </header>
@@ -159,6 +161,12 @@
   </footer>
 </article>
 
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
 </div>
 
 <aside class="sidebar">
@@ -178,6 +186,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
       </li>
     
@@ -191,6 +203,43 @@
     
   </ul>
 </section>
+<section>
+  <h1>About Me</h1>
+  <p>
+    君子终日乾乾，夕慎若厉，无咎。
+    yaosherlock@gmail.com
+  </p>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/sherlockyao">@sherlockyao</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'sherlockyao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
 
   
 </aside>
@@ -205,6 +254,22 @@
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2014/05/23/hello-blogging/';
+        var disqus_url = 'http://sherlockyao.com/blog/2014/05/23/hello-blogging/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 
