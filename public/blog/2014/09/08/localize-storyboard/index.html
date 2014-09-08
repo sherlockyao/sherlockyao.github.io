@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Blog Archive - 姚翔的部落格</title>
+  <title>如何更新Storyboard的多国语言strings文件 - 姚翔的部落格</title>
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="Blog Archive 2014 如何更新Storyboard的多国语言strings文件
-Sep 08 2014 posted in iOS, localize, storyboard UIScrollView在Autolayout下的实践经验
-Sep 01 2014 posted in &hellip;">
+  <meta name="description" content="目前XCode已经提供了很好的国际化集成，使你很容易就可以让应用支持国际化，就连Storyboard里面的文字也可以自动提取出来让工程师配置对应的多国文字。今天要讲的是当一个Storyboard文件已经本地化了以后，又有了新的需求而进行了改动，这时该如何去更新多国语言文件。 首先， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Sep 01 2014 posted in &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://sherlockyao.com/blog/archives/">
+  <link rel="canonical" href="http://sherlockyao.com/blog/2014/09/08/localize-storyboard/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
    <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -64,88 +62,101 @@ Sep 01 2014 posted in &hellip;">
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Blog Archive</h1>
+    
+      <h1 class="entry-title">如何更新Storyboard的多国语言strings文件</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-08T18:47:00+08:00" pubdate data-updated="true">Sep 8<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives">
 
 
+<div class="entry-content"><p>目前XCode已经提供了很好的国际化集成，使你很容易就可以让应用支持国际化，就连Storyboard里面的文字也可以自动提取出来让工程师配置对应的多国文字。今天要讲的是当一个Storyboard文件已经本地化了以后，又有了新的需求而进行了改动，这时该如何去更新多国语言文件。</p>
 
-  
-  <h2>2014</h2>
+<p>首先，如果你还不清楚如何国际化storyboard文件，那请点击<a href="http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014">这里</a>。</p>
 
-<article>
-  
-<h1><a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a></h1>
-<time datetime="2014-09-08T18:47:00+08:00" pubdate><span class='month'>Sep</span> <span class='day'>08</span> <span class='year'>2014</span></time>
+<p>当一个storyboard文件被localize了以后，在XCode右边的文件查看窗口就可以看到对应的语言列表，它们前面有一个checkbox，如果勾选的话就表示那种语言有对应的strings文件。因为XCode只支持一次性生成所有的storyboard的localize文件，所以当每次更新storyboard后想更新语言文件就变得非常麻烦。</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/localize/'>localize</a>, <a class='category' href='/blog/categories/storyboard/'>storyboard</a></span>
-</footer>
+<p><img src="/images/20140908/storyboard.png" title="" alt="File Inspector" /></p>
 
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a></h1>
-<time datetime="2014-09-01T13:14:00+08:00" pubdate><span class='month'>Sep</span> <span class='day'>01</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/ios/'>iOS</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a></h1>
-<time datetime="2014-07-08T17:47:00+08:00" pubdate><span class='month'>Jul</span> <span class='day'>08</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/docker/'>Docker</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a></h1>
-<time datetime="2014-05-26T13:59:00+08:00" pubdate><span class='month'>May</span> <span class='day'>26</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/cocoapod/'>CocoaPod</a>, <a class='category' href='/blog/categories/ios/'>iOS</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/05/23/hello-blogging/">Hello Blogging</a></h1>
-<time datetime="2014-05-23T15:30:00+08:00" pubdate><span class='month'>May</span> <span class='day'>23</span> <span class='year'>2014</span></time>
-
-
-</article>
-
+<p>我这里提供一个实践中学到的比较好的办法，就是首先你先备份一份你想要更新的语言文件，然后在右边的文件窗口把对应的那个勾选项取消掉，接着再选上，这个时候XCode就会重新生成一份新的文件。我们要做的就是把老文件里已经写好的对应关系复制到新文件上，再把新的元素的文字补上就可以了。</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-08T18:47:00+08:00" pubdate data-updated="true">Sep 8<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/localize/'>localize</a>, <a class='category' href='/blog/categories/storyboard/'>storyboard</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/09/08/localize-storyboard/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/09/08/localize-storyboard/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/09/01/uiscrollview-with-autolayout/" title="Previous Post: UIScrollView在Autolayout下的实践经验">&laquo; UIScrollView在Autolayout下的实践经验</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -243,7 +254,10 @@ Sep 01 2014 posted in &hellip;">
       var disqus_shortname = 'sherlockyao';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2014/09/08/localize-storyboard/';
+        var disqus_url = 'http://sherlockyao.com/blog/2014/09/08/localize-storyboard/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
