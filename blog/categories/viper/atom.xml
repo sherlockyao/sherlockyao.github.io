@@ -4,7 +4,7 @@
   <title><![CDATA[Category: VIPER | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/viper/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-09-09T17:21:28+08:00</updated>
+  <updated>2014-09-09T17:23:03+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -24,7 +24,7 @@
 
 <p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
 
-<p>```</p>
+<p>```objc</p>
 
 <pre><code>// 用于显示和隐藏等待框
 @protocol ProgressViewInterface &lt;NSObject&gt;
@@ -46,7 +46,7 @@
 
 <p>Prsenter是“VIP”结构中的中间件，起着承上启下的作用，所以我们放到下一篇文章里写，接下来我们来设计Interactor。Interactor在这里就只有一个功能，就是一个智能AI的角色。一般来说，interactor是一部分具体业务逻辑的实现者，虽然我们提倡对接口编程，但是这些实现一般一个应用就只会有一份，同时像Kiwi这种测试框架已经提供了良好的mock和stub支持，所以我们就不再对interactor设计接口，而是直接实现，其.h文件大致如下：</p>
 
-<p>```</p>
+<p>```objc</p>
 
 <pre><code>@interface AIRobotInteractor : NSObject
 

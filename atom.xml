@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-09-09T17:21:28+08:00</updated>
+  <updated>2014-09-09T17:23:03+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -24,7 +24,7 @@
 
 <p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -38,25 +38,26 @@
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// 用于显示和隐藏等待框
-</span><span class='line'>@protocol ProgressViewInterface &lt;NSObject&gt;
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 用于显示和隐藏等待框</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">ProgressViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'>- (void)beginProgress;
-</span><span class='line'>- (void)endProgress;
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">beginProgress</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">endProgress</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>@end
+</span><span class='line'><span class="k">@end</span>
 </span><span class='line'>
-</span><span class='line'>// 用于显示回应文本
-</span><span class='line'>@protocol MessageBoardViewInterface &lt;NSObject&gt;
+</span><span class='line'><span class="c1">// 用于显示回应文本</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">MessageBoardViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'>- (void)showMessage:(NSString *)message;
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">showMessage:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Prsenter是“VIP”结构中的中间件，起着承上启下的作用，所以我们放到下一篇文章里写，接下来我们来设计Interactor。Interactor在这里就只有一个功能，就是一个智能AI的角色。一般来说，interactor是一部分具体业务逻辑的实现者，虽然我们提倡对接口编程，但是这些实现一般一个应用就只会有一份，同时像Kiwi这种测试框架已经提供了良好的mock和stub支持，所以我们就不再对interactor设计接口，而是直接实现，其.h文件大致如下：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -71,21 +72,22 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@interface AIRobotInteractor : NSObject
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">AIRobotInteractor</span> : <span class="nc">NSObject</span>
 </span><span class='line'>
-</span><span class='line'>@property (nonatomic, weak) id&lt;CAIRobotInteractorDelegate&gt; delegate;
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">CAIRobotInteractorDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>- (void)askQuestion:(NSString *)question;
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">askQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">question</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>@end
+</span><span class='line'><span class="k">@end</span>
 </span><span class='line'>
 </span><span class='line'>
-</span><span class='line'>@protocol AIRobotInteractorDelegate &lt;NSObject&gt;
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">AIRobotInteractorDelegate</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'>@optional
-</span><span class='line'>- (void)aiRobotInteractor:(AIRobotInteractor *)aiRobotInteractor didResponseToQuestion:(NSString *)question response:(NSString *)response;
+</span><span class='line'><span class="k">@optional</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">aiRobotInteractor:</span><span class="p">(</span><span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="p">)</span><span class="n">aiRobotInteractor</span> <span class="nl">didResponseToQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">question</span> <span class="nl">response:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">response</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>注意，这里我们使用了Delegate作为和presenter的交互方式，但不是一定要用，具体可以通过实际需求来设计交互形式。同时在类的命名上我故意使用了一些广泛的名字，目的就是为了突出解耦这个概念，要知道这些view interface和interactor可以在任何需要的地方使用而不是只局限在当前这个view controller。</p>
