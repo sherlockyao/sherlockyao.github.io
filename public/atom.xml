@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-09-08T19:21:44+08:00</updated>
+  <updated>2014-09-09T17:23:03+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,89 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[VIPER实践（上）]]></title>
+    <link href="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/"/>
+    <updated>2014-09-09T14:35:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2014/09/09/viper-practise-1</id>
+    <content type="html"><![CDATA[<p>好的代码质量对于开发效率的提升可谓是指数级别的，好的代码架构则像是地基一样，是一切的前提。在iOS代码架构中讨论最多的对象就是ViewController了，传统的开发很容易产生其臃肿冗长的结果，我们很多人都为如何给它减肥伤透脑筋，无数前辈们探索出了各种不同的方案都值得我们学习参考。今天要说的VIPER架构就是较新的一次尝试，我是通过objc.io的文章第一次知道到它，具体链接<a href="http://www.objc.io/issue-13/viper.html">这里</a>，虽然文章没有非常深入这个主题，给出的示例代码个人认为还存在些缺陷，但它整个理念正好吻合我之前一直在构思的方案，而且给了我一个非常系统的思路，于是我直接把它应用到了一个新的项目中去，在实践中去深入体会其优缺点，同时不断根据自己的理解改进，下面就通过一个假想的App作为示例来说明一下我自己的理解。</p>
+
+<p>这个假想的App功能非常简单，类似一个简化版的Siri，用户在界面上输入一些文本后提交，应用就会返回一些回复的信息给你。首先在开始前我想说明一点，VIPER架构的核心思想就是把传统庞大的应用结构解构成View, interactor, Presenter, Entity, Routing五个部分，既然是做了解耦合，那各个部分直接应该做到相应的灵活和可重用，这点非常重要，我们在设计View，Presenter和Interactor时要时刻记住这一点。在objc.io原文章的示例代码中，这点做的就不够好，而在个人的实践中就更容易陷在这里，你会发现你给一个特定的View写了一个Presenter然后这个Presenter用到了一个特定的Interactor，这三个文件所做的就是应用中的一个特定的业务逻辑，所以也没办法被其他地方重用，其结果就是你只是简单的把原来属于一个ViewController的代码分散放到三个类中了，本质上却没有解耦合。请大家在看下面内容的时候时刻牢记这一点。同时示例我只提供了设计思路，并不提供实现的代码，因为示例的目的就是为了帮助理解VIPER的设计思路。</p>
+
+<p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 用于显示和隐藏等待框</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">ProgressViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">beginProgress</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">endProgress</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 用于显示回应文本</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">MessageBoardViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">showMessage:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Prsenter是“VIP”结构中的中间件，起着承上启下的作用，所以我们放到下一篇文章里写，接下来我们来设计Interactor。Interactor在这里就只有一个功能，就是一个智能AI的角色。一般来说，interactor是一部分具体业务逻辑的实现者，虽然我们提倡对接口编程，但是这些实现一般一个应用就只会有一份，同时像Kiwi这种测试框架已经提供了良好的mock和stub支持，所以我们就不再对interactor设计接口，而是直接实现，其.h文件大致如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">AIRobotInteractor</span> : <span class="nc">NSObject</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">CAIRobotInteractorDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">askQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">question</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">AIRobotInteractorDelegate</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@optional</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">aiRobotInteractor:</span><span class="p">(</span><span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="p">)</span><span class="n">aiRobotInteractor</span> <span class="nl">didResponseToQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">question</span> <span class="nl">response:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">response</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，这里我们使用了Delegate作为和presenter的交互方式，但不是一定要用，具体可以通过实际需求来设计交互形式。同时在类的命名上我故意使用了一些广泛的名字，目的就是为了突出解耦这个概念，要知道这些view interface和interactor可以在任何需要的地方使用而不是只局限在当前这个view controller。</p>
+
+<p>好了，下一篇我将具体说Presenter和Routing。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何更新Storyboard的多国语言strings文件]]></title>
