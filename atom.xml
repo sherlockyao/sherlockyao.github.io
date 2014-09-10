@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-09-09T17:23:03+08:00</updated>
+  <updated>2014-09-10T16:46:07+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,180 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[VIPER实践（下）]]></title>
+    <link href="http://sherlockyao.com/blog/2014/09/10/viper-practise-2/"/>
+    <updated>2014-09-10T16:01:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2014/09/10/viper-practise-2</id>
+    <content type="html"><![CDATA[<p>上一篇文章我们设计好了View和Interactor，现在我们来做Presenter。</p>
+
+<p>Presenter在这个用例里面的主要作用就是接受View提交过来的“提问”请求，然后向Interactor获取“答案”，最后把结果更新到View上，以下是实现部分的代码片段：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>    <span class="k">@interface</span> <span class="nc">HumanComputerCommunicatePresenter</span> : <span class="nc">NSObject</span> <span class="o">&lt;</span><span class="n">AIRobotInteractorDelegate</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">ProgressViewInterface</span><span class="o">&gt;</span> <span class="n">progressView</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">MessageBoardViewInterface</span><span class="o">&gt;</span> <span class="n">messageBoard</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="n">aiRobotInteractor</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">wantSendMessage:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">@implementation</span> <span class="nc">HumanComputerCommunicatePresenter</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">wantSendMessage:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span> <span class="p">{</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">progressView</span> <span class="n">beginProgress</span><span class="p">];</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">aiRobotInteractor</span> <span class="nl">askQuestion:</span><span class="n">message</span><span class="p">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">aiRobotInteractor:</span><span class="p">(</span><span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="p">)</span><span class="n">aiRobotInteractor</span> <span class="nl">didResponseToQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">question</span> <span class="nl">response:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">response</span> <span class="p">{</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">progressView</span> <span class="n">endProgress</span><span class="p">];</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">messageBoard</span> <span class="nl">showMessage:</span><span class="n">response</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现，Presenter就是承担了一个中间者的角色，它才是传统意义上MVC机构中的C(Controller)。其中有一点要注意的是，对应ViewInterface的reference，我们采用了weak的定义来防止Strong reference cycle ，在我自己的设计当中，我偏向于如下的reference关系：</p>
+
+<ul>
+<li>View &mdash;strong-> Presenter</li>
+<li>Presenter &mdash;strong-> Interactor</li>
+<li>Presenter &mdash;weak-> View</li>
+</ul>
+
+
+<p>最后我们来看一下Routing，objc.io那片文章中的Routing做的很散，通过多个wireframe来实现，我个人的设计中偏向用一个大的wireframe结合Assembling Factory来实现Routing，废话不多说看代码比较直观，以下只是我个人目前的一种实现方案，仅供参考：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@implementation</span> <span class="nc">AssemblingFactory</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">+</span> <span class="p">(</span><span class="n">UIViewController</span> <span class="o">*</span><span class="p">)</span><span class="nf">assembleChatroomView</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">ChatroomViewController</span> <span class="o">*</span><span class="n">viewController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIStoryboard</span> <span class="n">genericStoryboard</span><span class="p">]</span> <span class="nl">instantiateViewControllerWithIdentifier:</span><span class="n">ChatroomViewIdentifier</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">HumanComputerCommunicatePresenter</span> <span class="o">*</span><span class="n">presenter</span> <span class="o">=</span> <span class="p">[</span><span class="n">HumanComputerCommunicatePresenter</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="n">interactor</span> <span class="o">=</span> <span class="p">[</span><span class="n">AIRobotInteractor</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">viewController</span><span class="p">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">presenter</span><span class="p">.</span><span class="n">progressView</span> <span class="o">=</span> <span class="n">viewController</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">presneter</span><span class="p">.</span><span class="n">messageBoard</span> <span class="o">=</span> <span class="n">viewController</span>
+</span><span class='line'>  <span class="n">presenter</span><span class="p">.</span><span class="n">interactor</span> <span class="o">=</span> <span class="n">interactor</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">interactor</span><span class="p">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="n">presenter</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="n">viewController</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">Wireframe</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">moveToNextPageOfViewController:</span><span class="p">(</span><span class="n">UIViewController</span> <span class="o">*</span><span class="p">)</span><span class="nv">viewController</span> <span class="nf">messenger:</span><span class="p">(</span><span class="n">PageMessenger</span> <span class="o">*</span><span class="p">)</span><span class="nv">messenger</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">SEL</span> <span class="n">selector</span> <span class="o">=</span> <span class="p">[</span><span class="n">self</span> <span class="nl">selectorOfClass:</span><span class="p">[</span><span class="n">viewController</span> <span class="n">class</span><span class="p">]</span> <span class="nl">messengerName:</span><span class="p">[</span><span class="n">messenger</span> <span class="n">name</span><span class="p">]];</span>
+</span><span class='line'>  <span class="n">IMP</span> <span class="n">imp</span> <span class="o">=</span> <span class="p">[[</span><span class="n">self</span> <span class="n">class</span><span class="p">]</span> <span class="nl">methodForSelector:</span><span class="n">selector</span><span class="p">];</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)(</span><span class="kt">id</span><span class="p">,</span> <span class="kt">SEL</span><span class="p">,</span> <span class="n">UIViewController</span><span class="o">*</span><span class="p">,</span> <span class="n">NSDictionary</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">imp</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">func</span><span class="p">([</span><span class="n">self</span> <span class="n">class</span><span class="p">],</span> <span class="n">selector</span><span class="p">,</span> <span class="n">viewController</span><span class="p">,</span> <span class="p">[</span><span class="n">messenger</span> <span class="n">params</span><span class="p">]);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">+</span> <span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nf">selectorOfClass:</span><span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nv">class</span> <span class="nf">messengerName:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">messengerName</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">static</span> <span class="n">NSDictionary</span> <span class="o">*</span><span class="n">selectorMap</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">selectorMap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">selectorMap</span> <span class="o">=</span> <span class="err">@</span><span class="p">{</span>
+</span><span class='line'>                    <span class="s">@&quot;SplashViewControllerDefault&quot;</span> <span class="o">:</span> <span class="p">[</span><span class="n">NSValue</span> <span class="nl">valueWithPointer:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">moveToChatroomViewController:params:</span><span class="p">)]</span>
+</span><span class='line'>                    <span class="c1">// add more nav configuration here...</span>
+</span><span class='line'>                    <span class="p">};</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">NSValue</span> <span class="o">*</span><span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">selectorMap</span> <span class="nl">valueForKey:</span><span class="p">[[</span><span class="n">class</span> <span class="n">description</span><span class="p">]</span> <span class="nl">conj:</span><span class="n">messengerName</span><span class="p">]];</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span> <span class="o">?</span> <span class="p">[</span><span class="n">value</span> <span class="n">pointerValue</span><span class="p">]</span> <span class="o">:</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">emptyMove:params:</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">moveToChatroomViewController:</span><span class="p">(</span><span class="n">UIViewController</span> <span class="o">*</span><span class="p">)</span><span class="nv">viewController</span> <span class="nf">params:</span><span class="p">(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">params</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">UIViewController</span> <span class="o">*</span><span class="n">viewController</span> <span class="o">=</span> <span class="p">[</span><span class="n">AssemblingFactory</span> <span class="n">assembleChatroomView</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[(</span><span class="n">BaseViewController</span> <span class="o">*</span><span class="p">)</span><span class="n">viewController</span> <span class="nl">setParams:</span><span class="n">params</span><span class="p">];</span> <span class="c1">// I defined a base view controller to allow pass params</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">viewController</span><span class="p">.</span><span class="n">navigationController</span> <span class="nl">pushViewController:</span><span class="n">viewController</span> <span class="nl">animated:</span><span class="n">YES</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以上大致就是我个人目前实践VIPER的一些心得，肯定非常不成熟，有很多地方可以改进，只想抛砖引玉让大家广思集益共同改进我们代码的架构方案，从而最终帮助提高开发效率。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[VIPER实践（上）]]></title>
