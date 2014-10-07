@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Core Data | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/core-data/atom.xml" rel="self"/>
+  <link href="http://sherlockyao.com/"/>
+  <updated>2014-10-07T10:35:44+08:00</updated>
+  <id>http://sherlockyao.com/</id>
+  <author>
+    <name><![CDATA[Sherlock Yao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[使用MagicalRecord时做Migration的注意事项]]></title>
+    <link href="http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord/"/>
+    <updated>2014-09-11T16:22:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/magicalpanda/MagicalRecord">MagicalRecord</a>是一个非常好用的工具，让我们更方便地使用Core Data，同时代码上也能变得更简洁。但是简单易用的代价就是如果你不清楚它具体的实现机制时，当某些复杂情况出现后，产生一些“莫名其妙”的问题而导致手足无措。所以如果对Core Data本身不太了解的开发者，我建议还是不要用这个工具，等到对其机制有一定了解后再慢慢把它引入自己的代码。</p>
+
+<p>今天要讲的是通过一个自己的实际经历来说明一些使用MagicalRecord(以下简称MR)的注意点。首先我遇到的我问题是在对已有数据结构做调整时，我需要使用Core Data支持的Light Migration功能，按照它的要求添加了新版本的model文件后，发现期待的数据顺利迁移没有出现，出错了！</p>
+
+<p>在这里插一句，如果你不关心用户以前存在数据库的数据是否丢失(就是这么拽)，只想确保任何时候都不会出错，那可以在配置MR前加上下面这句代码，它会确保在数据库文件和model文件不匹配的情况下直接删除数据：</p>
+
+<p><code>objc
+[MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
+</code></p>
+
+<p>本着用户至上的想法，我还是想找方法解决这个问题的，通过一番搜索后了解到在创建store的时候会用到一个option参数，MagicalRecord的代码是默认是如下的：</p>
+
+<p><code>objc
+NSMutableDictionary *sqliteOptions = [NSMutableDictionary dictionary];
+[sqliteOptions setObject:@"WAL" forKey:@"journal_mode"];
+</code></p>
+
+<p>这里的journal_mode似乎指的是数据库记录下了操作日志文件，而这个文件在迁移的时候也会被同时迁移，但是这种模式下会报错(笔者没有深入看这部分的资料，所以阐述有可能有问题，请仅做参考)，总之一些帖子里面的意见就是改成DELETE值：</p>
+
+<p><code>objc
+[sqliteOptions setObject:@"DELETE" forKey:@"journal_mode"];
+</code></p>
+
+<p>我试过之后没起作用，说明问题不在这里(笔者下文说明了当时这个出错场景的原因，但是并没有回头去验证journal mode这个参数是否会造成migration失败，所以希望有兴趣的读者自己去深入研究)，那问题在哪里呢？在仔细读了MR的源代码后发现了一些端倪，我们一般使用MR时初始化只会写类似以下的这样一句代码：</p>
+
+<p><code>objc
+[MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:@"XXX.sqlite"];
+</code></p>
+
+<p>它帮我们封装了所以初始化Core Data的方法，所以很多地方它使用了一些默认值，我们来看其中一个方法：</p>
+
+<p>```objc
++ (NSManagedObjectModel *) MR_mergedObjectModelFromMainBundle;
+{</p>
+
+<pre><code>return [self mergedModelFromBundles:nil];
+</code></pre>
+
+<p>}
+```</p>
+
+<p>在没有OjbectModel的时候，MR会默认调用这个方法来创建，问题就出在这里啦，原来我的项目当中有用到XMPP的一个库，它本身自己就带了好几个data model的定义文件，而MR在创建时使用的merge的方法把所有model都合并到了一起，这就造成以前的数据库文件里的model hash code永远都无法和新的匹配，就算我提供了所有的model版本文件。那如何解决呢？好在MR设计地很灵活，我们可以通过一下方法来配置它：</p>
+
+<p><code>objc
+[MagicalRecord setShouldAutoCreateManagedObjectModel:NO];
+NSURL *modelURL = [[NSBundle mainBundle] URLForResource:@"XXX" withExtension:@"momd"];
+NSManagedObjectModel *objectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+[NSManagedObjectModel MR_setDefaultManagedObjectModel:objectModel];
+</code></p>
+
+<p>可是就算这样我还是无法解决问题，因为用户手机里的老数据用的还是merge了的model hash值，所以就算我这样做老数据还是无法迁移了，只能保证这个版本以后新版本就可以支持迁移了。这是一次惨痛的教训啊！所以强烈建议所有使用MR的工程师们，在正式的产品级项目里，初始化MR的时候就用以上这段繁琐的代码吧，不要用一句初始化的方法了。</p>
+]]></content>
+  </entry>
+  
+</feed>

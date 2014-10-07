@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-09-10T16:46:07+08:00</updated>
+  <updated>2014-10-07T10:35:44+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[使用MagicalRecord时做Migration的注意事项]]></title>
+    <link href="http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord/"/>
+    <updated>2014-09-11T16:22:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/magicalpanda/MagicalRecord">MagicalRecord</a>是一个非常好用的工具，让我们更方便地使用Core Data，同时代码上也能变得更简洁。但是简单易用的代价就是如果你不清楚它具体的实现机制时，当某些复杂情况出现后，产生一些“莫名其妙”的问题而导致手足无措。所以如果对Core Data本身不太了解的开发者，我建议还是不要用这个工具，等到对其机制有一定了解后再慢慢把它引入自己的代码。</p>
+
+<p>今天要讲的是通过一个自己的实际经历来说明一些使用MagicalRecord(以下简称MR)的注意点。首先我遇到的我问题是在对已有数据结构做调整时，我需要使用Core Data支持的Light Migration功能，按照它的要求添加了新版本的model文件后，发现期待的数据顺利迁移没有出现，出错了！</p>
+
+<p>在这里插一句，如果你不关心用户以前存在数据库的数据是否丢失(就是这么拽)，只想确保任何时候都不会出错，那可以在配置MR前加上下面这句代码，它会确保在数据库文件和model文件不匹配的情况下直接删除数据：</p>
+
+<p><code>objc
+[MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
+</code></p>
+
+<p>本着用户至上的想法，我还是想找方法解决这个问题的，通过一番搜索后了解到在创建store的时候会用到一个option参数，MagicalRecord的代码是默认是如下的：</p>
+
+<p><code>objc
+NSMutableDictionary *sqliteOptions = [NSMutableDictionary dictionary];
+[sqliteOptions setObject:@"WAL" forKey:@"journal_mode"];
+</code></p>
+
+<p>这里的journal_mode似乎指的是数据库记录下了操作日志文件，而这个文件在迁移的时候也会被同时迁移，但是这种模式下会报错(笔者没有深入看这部分的资料，所以阐述有可能有问题，请仅做参考)，总之一些帖子里面的意见就是改成DELETE值：</p>
+
+<p><code>objc
+[sqliteOptions setObject:@"DELETE" forKey:@"journal_mode"];
+</code></p>
+
+<p>我试过之后没起作用，说明问题不在这里(笔者下文说明了当时这个出错场景的原因，但是并没有回头去验证journal mode这个参数是否会造成migration失败，所以希望有兴趣的读者自己去深入研究)，那问题在哪里呢？在仔细读了MR的源代码后发现了一些端倪，我们一般使用MR时初始化只会写类似以下的这样一句代码：</p>
+
+<p><code>objc
+[MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:@"XXX.sqlite"];
+</code></p>
+
+<p>它帮我们封装了所以初始化Core Data的方法，所以很多地方它使用了一些默认值，我们来看其中一个方法：</p>
+
+<p>```objc
++ (NSManagedObjectModel *) MR_mergedObjectModelFromMainBundle;
+{</p>
+
+<pre><code>return [self mergedModelFromBundles:nil];
+</code></pre>
+
+<p>}
+```</p>
+
+<p>在没有OjbectModel的时候，MR会默认调用这个方法来创建，问题就出在这里啦，原来我的项目当中有用到XMPP的一个库，它本身自己就带了好几个data model的定义文件，而MR在创建时使用的merge的方法把所有model都合并到了一起，这就造成以前的数据库文件里的model hash code永远都无法和新的匹配，就算我提供了所有的model版本文件。那如何解决呢？好在MR设计地很灵活，我们可以通过一下方法来配置它：</p>
+
+<p><code>objc
+[MagicalRecord setShouldAutoCreateManagedObjectModel:NO];
+NSURL *modelURL = [[NSBundle mainBundle] URLForResource:@"XXX" withExtension:@"momd"];
+NSManagedObjectModel *objectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+[NSManagedObjectModel MR_setDefaultManagedObjectModel:objectModel];
+</code></p>
+
+<p>可是就算这样我还是无法解决问题，因为用户手机里的老数据用的还是merge了的model hash值，所以就算我这样做老数据还是无法迁移了，只能保证这个版本以后新版本就可以支持迁移了。这是一次惨痛的教训啊！所以强烈建议所有使用MR的工程师们，在正式的产品级项目里，初始化MR的时候就用以上这段繁琐的代码吧，不要用一句初始化的方法了。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[VIPER实践（下）]]></title>
@@ -218,64 +277,6 @@
 <p>做完上面两步后，我们就可以像平常一样设计我们的布局，添加逻辑代码了。当然这不能规避所有问题，但是通过这个方案可以从概念上分离内容大小和显示区域大小，从而简化我们的工作。</p>
 
 <p>想深入了解的话可以点这里<a href="http://spin.atomicobject.com/2014/03/05/uiscrollview-autolayout-ios/">参考文章</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Making a CocoaPod]]></title>
-    <link href="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/"/>
-    <updated>2014-05-26T13:59:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod</id>
-    <content type="html"><![CDATA[<p>最近想把自己正在做的iOS项目里的一个手势控制代码单独提出来以library的形式分享出去，本打算只是简单地在Github上建个public库然后把代码文件放上去，但作为一个“合格”的程序员，要时刻保持探索精神，所以打算做成时下流行的Cocopod公布出去。虽然要分享的代码作为一个pod还远不够格，但即使是菜鸟也应该为开源世界做点贡献，以下是随pod创建过程记录的一些notes，供大家参考。</p>
-
-<p>首先给出官方指导链接<a href="http://guides.cocoapods.org/making/making-a-cocoapod.html">Making a CocoaPod</a>，我基本就是参考这篇文章来操作的。</p>
-
-<ul>
-<li><p>第一步就是新建目录结构<code>pod lib create SYDemoPod</code><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>（我是采用完全从头开始创建的方法，所以对于如何把已经放在github上的文件变为pod的过程，这篇文章不会涵盖），执行完后pod就会自动在当前文件夹创建一个SYDemoPod的文件夹，里面会生成一些默认的文件和目录。</p></li>
-<li><p>下一步就是把我需要发布的文件放到Classes目录下，比方说是文件SYPod.h和SYPod.m，因为是从我的一个iOS项目里提出来的，暂时就只让它作为iOS的库好了，所以就把他们拷贝到Classes的ios目录下，同时修改.podspec文件，把里面的信息改成自己需要的（如果不知道怎么写，可以找个其他的pod照着写就行），这里有一个tip，在source file的配置项里，加上<code>'Classes', 'Classes/**/*.{h,m}'</code>，这样就可以把Classes下面所有的文件加进去了，不然是会加根目录下的文件。</p></li>
-<li><p>接下来修改Example目里下的Podfile，配置pod依赖：</p></li>
-</ul>
-
-
-<p>```bash
-  platform :ios, &lsquo;6.0&rsquo;</p>
-
-<p>  pod &ldquo;SYDemoPod&rdquo;, :path => &ldquo;../&rdquo;
-```</p>
-
-<p>  现在我们就可以创建一个Example项目到那个文件夹里面，作为给其他用户演示如何使用我的这个库的示例项目。用XCode新建完项目，然后命令行<code>pod install</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>安装依赖，接着打开.workspace文件后你就可以coding你的示例代码了。</p>
-
-<ul>
-<li><p>把该写的代码都完成后，就万事俱备，只欠发布了。我们先来验证一下podspec文件，在Pod目录下运行<code>pod lib lint</code>命令，当验证没问题后，我们就可以把所有文件都提交并push到自己的github上去，接下来我们要实际测试一下这个pod是否有效。</p>
-
-<p>  在本地新建一个项目，同时加一个Podfile，加上如下配置：</p></li>
-</ul>
-
-
-<p><code>bash
-  # 这里的url就是对应你自己的pod的github链接
-  pod 'SYDemoPod', :git =&gt; 'https://example.com/URL/to/repo/SYDemoPod.git'
-</code></p>
-
-<p>  配置好后运行<code>pod install</code>或<code>pod update</code>，然后看看是否能正确添加依赖，如果没有任何问题，那就可以发布啦，依次使用以下命令即可：</p>
-
-<p>```bash
-  rake release</p>
-
-<p>  pod trunk push SYDemoPod.podspec
-```</p>
-
-<p>另：如果执行<code>pod trunk push</code>命令时提示你要创建一个session，那就先<code>pod trunk register</code>先注册一下就可以了</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>我用的pod版本是0.29.0<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>笔者此时运行pod命令时，发现pod不是最新版本，所以升级到了0.32.1<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
 ]]></content>
   </entry>
   
