@@ -1,0 +1,88 @@
+---
+layout: post
+title: "如何部署一个Node.js项目"
+date: 2014-11-10 10:33
+comments: true
+categories: [Node, Node.js, Nginx, Upstart]
+---
+
+工作中的项目需要一个简单的Web服务器，考虑到Node.js快捷方便的特性就选择它来搭建。在开发阶段，使用node命令就能很快速地启动服务器来调试，但是到实际部署阶段，就要考虑把它放到一个单独的后台进程去运行，同时一般还会需要Nginx来做反向代理，所以在Google上搜了一通后选择了Nginx + Upstart + Node的组合方式。这里我就大致记录下自己的配置步骤，以供像我一样初次部署的生手参考。(注：我们用的是ubuntu的部署系统，所以以下所有命令都是以ubuntu上的形式给出)
+
+首先是安装各种必要的程序：Nginx, Node, Vi等，这里就不说明了。安装完毕后，我们先单独创建一个node用户来跑所有的node projects：
+
+```bash
+sudo adduser \\
+    --system \\
+    --shell /bin/bash \\
+    --gecos 'user for running node.js projects' \\
+    --group \\
+    --disabled-password \\
+    --home /home/node \\
+    node
+```
+
+接下来便是配置一段Upstart的脚本来启动我们的Node应用，Ubuntu下Upstart的脚本默认是放在/etc/init下的，你可以创建一个和自己项目有关的myapp.conf文件放在下面，里面的内容如下(请把对应的文件目录和js文件替换成适合你自己项目的值)：
+
+```bash
+description "XXX node server"
+author  "Sherlock Yao"
+
+start on (local-filesystems and net-device-up IFACE=eth0)
+stop on shutdown
+
+respawn
+
+script
+        cd /var/local/sites/myapp
+        exec sudo -u node NODE_ENV=production /usr/local/bin/node /var/local/sites/myapp/express.js >> /var/log/myapp.log 2>&1
+end script
+```
+
+然后便是把你要部署的代码放到服务器上，我们是用Git管理的，所以直接clone下来，这里要注意的就是一定要把文件的权限附给node用户，包括日志文件：
+
+```bash
+sudo mkdir -p /var/local/sites/myapp
+sudo chown node /var/local/sites/myapp
+cd /var/local/sites/myapp
+sudo -u node git clone /path/to/myapp.git
+
+sudo touch /var/log/myapp.log
+sudo chown node /var/log/myapp.log
+```
+
+最后添加Nginx的反向代理，配置文件(/etc/nginx/sites-available/myapp)内容如下，记得把myapp替换成适合你自己情况的名字：
+
+```bash
+#添加完成后用"sudo service nginx restart"来重启nginx
+
+upstream myapp {
+    server 127.0.0.1:3000;
+}
+
+server {
+    listen 80;
+    server_name myapp.com; #这里写上你自己需要的域名或ip
+    access_log /var/log/nginx/myapp.log;
+
+    # pass the request to the node.js server with the correct headers and much more can be added, see nginx config options
+    location / {
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_set_header X-NginX-Proxy true;
+
+      proxy_pass http://myapp/;
+      proxy_redirect off;
+    }
+ }
+```
+
+一切配置妥当后，就可以用下面的命令开启、查看、停止你的应用了：
+
+```bash
+sudo start myapp
+sudo status myapp
+sudo stop myapp
+```
+
+另外附上一篇我参考的[英文博文](http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/)，里面又更详尽的说明。
