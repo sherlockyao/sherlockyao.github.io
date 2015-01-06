@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>iOS的毛玻璃效果View - 姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="在iOS升级到7时，巨大的UI风格改变给我们带来了全新的视觉感受，而那个独特的Navigation Bar毛玻璃(模糊背景)效果更是让很多人赞叹不已。现在iOS 8中Apple已经添加了UIKit层对这个Blur Effect的原生支持，我是以WWDC 2014中某一个视频为契机找到了相关的内容， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/2015/01/06/blur-effect-view/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+</hgroup>
+
+</header>
+  <!-- <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:sherlockyao.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav> -->
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">iOS的毛玻璃效果View</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-06T13:37:00+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2015</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>在iOS升级到7时，巨大的UI风格改变给我们带来了全新的视觉感受，而那个独特的Navigation Bar毛玻璃(模糊背景)效果更是让很多人赞叹不已。现在iOS 8中Apple已经添加了UIKit层对这个Blur Effect的原生支持，我是以WWDC 2014中某一个视频为契机找到了相关的内容，特此整理和记录下。我只是简单地做个Note，<a href="http://www.tuicool.com/articles/mqUj2eY">这里</a>有个较完整的说明，想更深入了解的朋友请自行Google，关键词：UIBlurEffect、UIVibrancyEffect、UIVisualEffectView。</p>
+
+<p>在最新的XCode里，IB中的Object Libary已经默认自带Visual Effect View的控件，可以直接拖拽使用，非常方便。如果想用代码来添加的话，大致是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="n">UIVisualEffect</span> <span class="o">*</span><span class="n">effect</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBlurEffect</span> <span class="nl">effectWithStyle:</span><span class="n">UIBlurEffectStyleLight</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">UIVisualEffectView</span> <span class="o">*</span><span class="n">effectView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIVisualEffectView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithEffect:</span><span class="n">effect</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">contentView</span><span class="p">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIColor</span> <span class="nl">colorWithWhite:</span><span class="mf">0.7</span> <span class="nl">alpha:</span><span class="mf">0.3</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">blurView</span> <span class="nl">addSubview:</span><span class="n">effectView</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">blurView</span><span class="p">.</span><span class="n">bounds</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现，就算用代码也非常简便，和使用其他UI元素一样，创建并加入到view的tree中(当然也可以用autolayout来控制位置)。附赠一个小贴士，经过测试，如果加入了visual effect view后，再去修改其父view(上面代码中的self.blurView)的alpha值时，其模糊效果就会失效了，具体底层原因是什么还没深究过，这只是我个人的实践结果。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-06T13:37:00+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/blur/'>Blur</a>, <a class='category' href='/blog/categories/uiblureffect/'>UIBlurEffect</a>, <a class='category' href='/blog/categories/uivisualeffectview/'>UIVisualEffectView</a>, <a class='category' href='/blog/categories/vibrancy/'>Vibrancy</a>, <a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/mo-hu/'>模糊</a>, <a class='category' href='/blog/categories/mao-bo-li/'>毛玻璃</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2015/01/06/blur-effect-view/" data-via="" data-counturl="http://sherlockyao.com/blog/2015/01/06/blur-effect-view/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/10/deploy-node-project/" title="Previous Post: 如何部署一个Node.js项目">&laquo; 如何部署一个Node.js项目</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <ul id="recent_posts">
+      <li class="post">
+      <a href="http://sherlockyao.com" alt="Home"><img src="/images/Home.png"></a>
+      <a href="http://sherlockyao.com/archives/" alt="Archives"><img src="/images/Calendar.png"></a>
+      
+      <a href="http://sherlockyao.com/atom.xml" alt="subscribe feed"><img src="/images/rss.png"></a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/10/viper-practise-2/">VIPER实践（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <p>
+    君子终日乾乾，夕慎若厉，无咎。
+    yaosherlock@gmail.com
+  </p>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/sherlockyao">@sherlockyao</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'sherlockyao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Sherlock Yao -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2015/01/06/blur-effect-view/';
+        var disqus_url = 'http://sherlockyao.com/blog/2015/01/06/blur-effect-view/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

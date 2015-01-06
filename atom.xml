@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2014-11-10T11:52:03+08:00</updated>
+  <updated>2015-01-06T14:11:55+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,34 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[iOS的毛玻璃效果View]]></title>
+    <link href="http://sherlockyao.com/blog/2015/01/06/blur-effect-view/"/>
+    <updated>2015-01-06T13:37:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/01/06/blur-effect-view</id>
+    <content type="html"><![CDATA[<p>在iOS升级到7时，巨大的UI风格改变给我们带来了全新的视觉感受，而那个独特的Navigation Bar毛玻璃(模糊背景)效果更是让很多人赞叹不已。现在iOS 8中Apple已经添加了UIKit层对这个Blur Effect的原生支持，我是以WWDC 2014中某一个视频为契机找到了相关的内容，特此整理和记录下。我只是简单地做个Note，<a href="http://www.tuicool.com/articles/mqUj2eY">这里</a>有个较完整的说明，想更深入了解的朋友请自行Google，关键词：UIBlurEffect、UIVibrancyEffect、UIVisualEffectView。</p>
+
+<p>在最新的XCode里，IB中的Object Libary已经默认自带Visual Effect View的控件，可以直接拖拽使用，非常方便。如果想用代码来添加的话，大致是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="n">UIVisualEffect</span> <span class="o">*</span><span class="n">effect</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBlurEffect</span> <span class="nl">effectWithStyle:</span><span class="n">UIBlurEffectStyleLight</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">UIVisualEffectView</span> <span class="o">*</span><span class="n">effectView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIVisualEffectView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithEffect:</span><span class="n">effect</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">contentView</span><span class="p">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIColor</span> <span class="nl">colorWithWhite:</span><span class="mf">0.7</span> <span class="nl">alpha:</span><span class="mf">0.3</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">blurView</span> <span class="nl">addSubview:</span><span class="n">effectView</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">blurView</span><span class="p">.</span><span class="n">bounds</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现，就算用代码也非常简便，和使用其他UI元素一样，创建并加入到view的tree中(当然也可以用autolayout来控制位置)。附赠一个小贴士，经过测试，如果加入了visual effect view后，再去修改其父view(上面代码中的self.blurView)的alpha值时，其模糊效果就会失效了，具体底层原因是什么还没深究过，这只是我个人的实践结果。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何部署一个Node.js项目]]></title>
