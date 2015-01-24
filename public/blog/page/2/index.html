@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="几天前通过同事知道了Docker这个工具，今天在工作的空暇时间打开了它的官网想进一步了解一下它，在完成了一个快速的练习教程后，惊奇地发现其优秀的功能，但却混乱了我的思维。弄清以及理解其原理一直我学新东西的方法，当然也是一种束缚，以致我在不清楚其原理前始终都会不得使用的要领， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/page/2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+
+</head>
+
+<body   >
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
+
+<div class="header-right">
+  
+<ul class="main-navigation">
+ <div class="selected"> 
+  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives">Archives</a></li></div>
+</ul>
+
+</div>
+</header>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-08T17:47:00+08:00" pubdate data-updated="true">Jul 8<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/07/08/first-sight-of-docker/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>几天前通过同事知道了Docker这个工具，今天在工作的空暇时间打开了它的官网想进一步了解一下它，在完成了一个快速的练习教程后，惊奇地发现其优秀的功能，但却混乱了我的思维。弄清以及理解其原理一直我学新东西的方法，当然也是一种束缚，以致我在不清楚其原理前始终都会不得使用的要领，所以这一次我又开始了漫漫Google之路，想弄明白这个工具的概念到底是什么。</p>
+
+<p>结果不太理想，因为它的底层技术涉及到LXC和AUFS这些我完全不了解的东西，所以在我写这篇文章的时候，脑中还处于一片迷雾之中。但我略微看清了一些它的轮廓，所以我想用自己的语言来描述一下我所见到的景象，以供那些和我一样初次接触Docker的人一些参考。</p>
+
+<p>首先让我把平时我们的开发工作比喻成一次表演（发布）的排练过程，有表演就涉及到舞台（运行环境），我们肯定希望最终的表演舞台同我们排练时使用的是相似的，这样才会达到最好的表演效果。但实际情况是，各个地点的场地都不一样，这样布置舞台（配置环境）就成为一个非常繁琐和痛苦的工作。</p>
+
+<p>Docker为我们提供了什么呢？它带来一个大大的集装箱。它告诉演出者（开发人员），让他们在这个集装箱的空间里进行排练，同时保证到时候所有演出场地都会有一个一模一样的集装箱场地。Docker又跑到各个场地，告诉那些承办方它将要放一个集装箱在场地上作为舞台，尺寸是多长多宽多高，他们要做的就是到时候腾出一块能放这个集装箱的空间就可以了。</p>
+
+<p>听起来似乎一切问题都解决了，但是演出者有些不满意，这个集装箱空空荡荡的，完全不像个舞台呀。没问题，Docker拿出了一本册子(Docker Hub)，里面有许许多多舞台模板，都是根据这个集装箱设计的，而且还有其他乐队贡献的他们设计的模板，完全不用担心。演出者们挑了好久，终于选择了一款自己喜欢的，但是仍然觉得不满意。这也没问题，你们可以自己再二次改造啊，只要把你们需要装修的步骤（Dockerfile）写下来就可以了。于是Docker把模板的布置步骤再加上演出者后期改进的装修步骤混合成一份新的施工说明书交给了各地的承办方。</p>
+
+<p>一个个集装箱被运到了各个场地，工人们根据施工说明造出了一个个一模一样的集装箱舞台，和演出者们排练时用的完全一样。这下就真的不用担心演出效果和排练时不一样了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-26T13:59:00+08:00" pubdate data-updated="true">May 26<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/05/26/making-a-cocoapod/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近想把自己正在做的iOS项目里的一个手势控制代码单独提出来以library的形式分享出去，本打算只是简单地在Github上建个public库然后把代码文件放上去，但作为一个“合格”的程序员，要时刻保持探索精神，所以打算做成时下流行的Cocopod公布出去。虽然要分享的代码作为一个pod还远不够格，但即使是菜鸟也应该为开源世界做点贡献，以下是随pod创建过程记录的一些notes，供大家参考。</p>
+
+<p>首先给出官方指导链接<a href="http://guides.cocoapods.org/making/making-a-cocoapod.html">Making a CocoaPod</a>，我基本就是参考这篇文章来操作的。</p>
+
+<ul>
+<li><p>第一步就是新建目录结构<code>pod lib create SYDemoPod</code><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>（我是采用完全从头开始创建的方法，所以对于如何把已经放在github上的文件变为pod的过程，这篇文章不会涵盖），执行完后pod就会自动在当前文件夹创建一个SYDemoPod的文件夹，里面会生成一些默认的文件和目录。</p></li>
+<li><p>下一步就是把我需要发布的文件放到Classes目录下，比方说是文件SYPod.h和SYPod.m，因为是从我的一个iOS项目里提出来的，暂时就只让它作为iOS的库好了，所以就把他们拷贝到Classes的ios目录下，同时修改.podspec文件，把里面的信息改成自己需要的（如果不知道怎么写，可以找个其他的pod照着写就行），这里有一个tip，在source file的配置项里，加上<code>'Classes', 'Classes/**/*.{h,m}'</code>，这样就可以把Classes下面所有的文件加进去了，不然是会加根目录下的文件。</p></li>
+<li><p>接下来修改Example目里下的Podfile，配置pod依赖：</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  platform :ios, <span class="s1">&#39;6.0&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  pod <span class="s2">&quot;SYDemoPod&quot;</span>, :path <span class="o">=</span>&gt; <span class="s2">&quot;../&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  现在我们就可以创建一个Example项目到那个文件夹里面，作为给其他用户演示如何使用我的这个库的示例项目。用XCode新建完项目，然后命令行<code>pod install</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>安装依赖，接着打开.workspace文件后你就可以coding你的示例代码了。</p>
+
+<ul>
+<li><p>把该写的代码都完成后，就万事俱备，只欠发布了。我们先来验证一下podspec文件，在Pod目录下运行<code>pod lib lint</code>命令，当验证没问题后，我们就可以把所有文件都提交并push到自己的github上去，接下来我们要实际测试一下这个pod是否有效。</p>
+
+<p>  在本地新建一个项目，同时加一个Podfile，加上如下配置：</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  <span class="c"># 这里的url就是对应你自己的pod的github链接</span>
+</span><span class='line'>  pod <span class="s1">&#39;SYDemoPod&#39;</span>, :git <span class="o">=</span>&gt; <span class="s1">&#39;https://example.com/URL/to/repo/SYDemoPod.git&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  配置好后运行<code>pod install</code>或<code>pod update</code>，然后看看是否能正确添加依赖，如果没有任何问题，那就可以发布啦，依次使用以下命令即可：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  rake release
+</span><span class='line'>
+</span><span class='line'>  pod trunk push SYDemoPod.podspec
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另：如果执行<code>pod trunk push</code>命令时提示你要创建一个session，那就先<code>pod trunk register</code>先注册一下就可以了</p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>我用的pod版本是0.29.0<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>笔者此时运行pod命令时，发现pod不是最新版本，所以升级到了0.32.1<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/23/hello-blogging/">Hello Blogging</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-23T15:30:00+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2014</time>
+        
+           | <a href="/blog/2014/05/23/hello-blogging/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2014/05/23/hello-blogging/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了，但仍抱有对持久写作的一丝希望，作为开篇，就简单说明一下如何建立自己的github.io blog。</p>
+
+<p>搭建的文档官方已经很完善了，这里就只给出链接，另外我用的是Octopress，所以文档是它家的，至于Markdown的话找了一篇简洁明了的：</p>
+
+<ul>
+<li><a href="https://pages.github.com/">Github Pages</a></li>
+<li><a href="http://octopress.org/docs/">Octopress</a></li>
+<li><a href="http://jianshu.io/p/q81RER">Markdown</a></li>
+</ul>
+
+
+<p>这里再赘述一下创建一篇博文的简单流程，以作备忘用：</p>
+
+<ol>
+<li><p>用下面的命令生成一篇新文章<br/>
+<code>rake new_post["Create A Post With Given Title"]</code></p></li>
+<li><p>书写完毕后，可以用以下命令预览<br/>
+<code>rake preview</code> or <code>rake watch</code></p></li>
+<li><p>确定要发布的时候就使用下面命令，它会将页面生成到source目录下同时push到master分支<br/>
+<code>rake generate</code> and <code>rake deploy</code></p></li>
+<li><p>最后别忘了把source分支的修改提交并push到git上<br/>
+<code>git commit -m'msg'</code> and <code>git push origin source</code></p></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I&#8217;m working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
+    
+  <a href="https://github.com/sherlockyao"><img src="/images/social/github.png" alt="Github" /></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/linkedin.png" alt="LinkedIn" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
+</section>
+
+  <section>
+  <h1>Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/10/viper-practise-2/">VIPER实践（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/23/hello-blogging/">Hello Blogging</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+    
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2015
+
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+</body>
+</html>
