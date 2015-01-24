@@ -18,47 +18,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/">
+  <link rel="canonical" href="http://sherlockyao.com/blog/2014/09/09/viper-practise-1">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-
-
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
   
 
 </head>
 
 <body   >
-  <header role="banner"><hgroup>
-</hgroup>
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
 
-</header>
-  <!-- <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:sherlockyao.com" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
+<div class="header-right">
   
 <ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
+ <div> 
+  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives">Archives</a></li></div>
 </ul>
 
-</nav> -->
+</div>
+</header>
   <div id="main">
     <div id="content">
       <div>
@@ -84,7 +76,8 @@
 
 <time datetime="2014-09-09T14:35:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2014</time>
         
-         | <a href="#disqus_thread">Comments</a>
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com">Comments</a>
         
       </p>
     
@@ -202,7 +195,7 @@
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/" data-via="" data-counturl="http://sherlockyao.com/blog/2014/09/09/viper-practise-1/" >Tweet</a>
   
   
   
@@ -229,19 +222,26 @@
 </div>
 
 <aside class="sidebar">
-  
-    <section>
-  <ul id="recent_posts">
-      <li class="post">
-      <a href="http://sherlockyao.com" alt="Home"><img src="/images/Home.png"></a>
-      <a href="http://sherlockyao.com/archives/" alt="Archives"><img src="/images/Calendar.png"></a>
-      
-      <a href="http://sherlockyao.com/atom.xml" alt="subscribe feed"><img src="/images/rss.png"></a>
-      </li>
-  </ul>
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
+    
+  <a href="https://github.com/sherlockyao"><img src="/images/social/github.png" alt="Github" /></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/linkedin.png" alt="LinkedIn" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
 </section>
-<section>
-  <h1>Recent Posts</h1>
+
+  <section>
+  <h1>Posts</h1>
   <ul id="recent_posts">
     
       <li class="post">
@@ -264,57 +264,48 @@
         <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
       </li>
     
+      <li class="post">
+        <a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/23/hello-blogging/">Hello Blogging</a>
+      </li>
+    
   </ul>
 </section>
-<section>
-  <h1>About Me</h1>
-  <p>
-    君子终日乾乾，夕慎若厉，无咎。
-    yaosherlock@gmail.com
-  </p>
-</section>
 
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating...</li>
-  </ul>
   
-  <a href="https://github.com/sherlockyao">@sherlockyao</a> on GitHub
-  
-  <script type="text/javascript">
-    $.domReady(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
-
-        github.showRepos({
-            user: 'sherlockyao',
-            count: 0,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
-
-
+    
   
 </aside>
 
 
     </div>
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Sherlock Yao -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2015
 
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
 </footer>
   
 
@@ -329,7 +320,7 @@
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>
@@ -345,11 +336,10 @@
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>
-
 
 
 
