@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-01-24T11:45:42+08:00</updated>
+  <updated>2015-04-14T19:59:16+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,90 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mac上安装Ruby on Rails]]></title>
+    <link href="http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac/"/>
+    <updated>2015-04-14T19:48:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac</id>
+    <content type="html"><![CDATA[<p>Mac加了SSD硬盘，重装了系统，所以需要重新安装Rails，找到一篇文章一步步照着来做，顺带记录下步骤分享给需要的人。本人Mac系统版本10.10.3。(<a href="https://gorails.com/setup/osx/10.10-yosemite">原文链接</a>)</p>
+
+<ul>
+<li>安装Homebrew</li>
+</ul>
+
+
+<p>Homebrew能帮我们更便捷地从源代码编译安装其他软件，在Terminal里运行以下命令:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ruby -e <span class="s2">&quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装Ruby</li>
+</ul>
+
+
+<p>原先是用rvm来安装ruby的，这里用的是rbenv，据同事说这个比rvm更好用，总之照着下面的命令来吧：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>brew install rbenv ruby-build
+</span><span class='line'>
+</span><span class='line'><span class="c"># Add rbenv to bash so that it loads every time you open a terminal</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;if which rbenv &gt; /dev/null; then eval &quot;$(rbenv init -)&quot;; fi&#39;</span> &gt;&gt; ~/.bash_profile
+</span><span class='line'><span class="nb">source</span> ~/.bash_profile
+</span><span class='line'>
+</span><span class='line'><span class="c"># Install Ruby</span>
+</span><span class='line'>rbenv install 2.2.1
+</span><span class='line'>rbenv global 2.2.1
+</span><span class='line'>ruby -v
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装Rails</li>
+</ul>
+
+
+<p>Terminal里运行以下命令：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem install rails -v 4.2.0
+</span><span class='line'>
+</span><span class='line'><span class="c">#在这个过程中本人遇到安装失败，提示运行以下命令</span>
+</span><span class='line'>xcode-select --install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>装完rails，为了能让rails成为可执行命令，还需要运行以下命令：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv rehash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OK，大功告成，最后分享一条Tip：
+平时国内网络下安装gem包总是会连接不上，淘宝提供了mirror，所以可以用下面的命令把地址转到淘宝的链接：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle config mirror.https://rubygems.org http://ruby.taobao.org
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS的毛玻璃效果View]]></title>
@@ -177,7 +261,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>另外附上一篇我参考的<a href="http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/">英文博文</a>，里面又更详尽的说明。</p>
+<p>另外附上一篇我参考的<a href="http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/">英文博文</a>，里面有更详尽的说明。</p>
 ]]></content>
   </entry>
   
