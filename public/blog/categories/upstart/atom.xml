@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Upstart | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/upstart/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-01-24T11:45:42+08:00</updated>
+  <updated>2015-04-14T19:59:16+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -110,7 +110,7 @@ sudo status myapp
 sudo stop myapp
 </code></p>
 
-<p>另外附上一篇我参考的<a href="http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/">英文博文</a>，里面又更详尽的说明。</p>
+<p>另外附上一篇我参考的<a href="http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/">英文博文</a>，里面有更详尽的说明。</p>
 ]]></content>
   </entry>
   

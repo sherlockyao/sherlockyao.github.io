@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: ror | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/ror/atom.xml" rel="self"/>
+  <link href="http://sherlockyao.com/"/>
+  <updated>2015-04-14T19:59:16+08:00</updated>
+  <id>http://sherlockyao.com/</id>
+  <author>
+    <name><![CDATA[Sherlock Yao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Mac上安装Ruby On Rails]]></title>
+    <link href="http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac/"/>
+    <updated>2015-04-14T19:48:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac</id>
+    <content type="html"><![CDATA[<p>Mac加了SSD硬盘，重装了系统，所以需要重新安装Rails，找到一篇文章一步步照着来做，顺带记录下步骤分享给需要的人。本人Mac系统版本10.10.3。(<a href="https://gorails.com/setup/osx/10.10-yosemite">原文链接</a>)</p>
+
+<ul>
+<li>安装Homebrew</li>
+</ul>
+
+
+<p>Homebrew能帮我们更便捷地从源代码编译安装其他软件，在Terminal里运行以下命令:</p>
+
+<p>```bash</p>
+
+<pre><code>ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>安装Ruby</li>
+</ul>
+
+
+<p>原先是用rvm来安装ruby的，这里用的是rbenv，据同事说这个比rvm更好用，总之照着下面的命令来吧：</p>
+
+<p>```bash</p>
+
+<pre><code>brew install rbenv ruby-build
+
+# Add rbenv to bash so that it loads every time you open a terminal
+echo 'if which rbenv &gt; /dev/null; then eval "$(rbenv init -)"; fi' &gt;&gt; ~/.bash_profile
+source ~/.bash_profile
+
+# Install Ruby
+rbenv install 2.2.1
+rbenv global 2.2.1
+ruby -v
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>安装Rails</li>
+</ul>
+
+
+<p>Terminal里运行以下命令：</p>
+
+<p>```bash</p>
+
+<pre><code>gem install rails -v 4.2.0
+
+#在这个过程中本人遇到安装失败，提示运行以下命令
+xcode-select --install
+</code></pre>
+
+<p>```
+装完rails，为了能让rails成为可执行命令，还需要运行以下命令：</p>
+
+<p><code>bash
+rbenv rehash
+</code></p>
+
+<p>OK，大功告成，最后分享一条Tip：
+平时国内网络下安装gem包总是会连接不上，淘宝提供了mirror，所以可以用下面的命令把地址转到淘宝的链接：</p>
+
+<p><code>bash
+bundle config mirror.https://rubygems.org http://ruby.taobao.org
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -85,4 +85,4 @@ sudo status myapp
 sudo stop myapp
 ```
 
-另外附上一篇我参考的[英文博文](http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/)，里面又更详尽的说明。
+另外附上一篇我参考的[英文博文](http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/)，里面有更详尽的说明。
