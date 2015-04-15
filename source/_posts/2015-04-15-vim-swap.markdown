@@ -1,0 +1,19 @@
+---
+layout: post
+title: "Vim无法打开Swap文件的错误"
+date: 2015-04-15 10:12
+comments: true
+categories: [vim, swap, git, chown]
+---
+
+事件之始是本人的老Mac加装SSD硬盘后在新系统中的一次git commit，提交失败，原因是用vim写comment的时候保存不成功，在提示信息中有如下内容：
+
+```
+Unable to open swap file for "{filename}", recovery impossible
+```
+
+因为我是在装完新系统后，把老硬盘里的配置文件都拷到新硬盘了，所以在我的.vimrc文件中确实是单独设置了swap的目录：`set directory=~/.vim/tmp`，于是首先怀疑是对应的目录不存在，如果是这种情况，可以使用`mkdir -p ~/.vim/tmp`这个命令去创建目录，但我的情况是这个目录已经存在。经过ls命令观察该目录内容，突然发现它的所有者是root用户的，恍然大悟，只要把它换成当前使用的用户名就可以了，于是用以下命令便可解决问题：
+
+```bash
+sudo chown -Rv username .vim 
+```

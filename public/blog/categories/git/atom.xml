@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: git | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/git/atom.xml" rel="self"/>
+  <link href="http://sherlockyao.com/"/>
+  <updated>2015-04-15T10:37:40+08:00</updated>
+  <id>http://sherlockyao.com/</id>
+  <author>
+    <name><![CDATA[Sherlock Yao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Vim无法打开Swap文件的错误]]></title>
+    <link href="http://sherlockyao.com/blog/2015/04/15/vim-swap/"/>
+    <updated>2015-04-15T10:12:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/04/15/vim-swap</id>
+    <content type="html"><![CDATA[<p>事件之始是本人的老Mac加装SSD硬盘后在新系统中的一次git commit，提交失败，原因是用vim写comment的时候保存不成功，在提示信息中有如下内容：</p>
+
+<p><code>
+Unable to open swap file for "{filename}", recovery impossible
+</code></p>
+
+<p>因为我是在装完新系统后，把老硬盘里的配置文件都拷到新硬盘了，所以在我的.vimrc文件中确实是单独设置了swap的目录：<code>set directory=~/.vim/tmp</code>，于是首先怀疑是对应的目录不存在，如果是这种情况，可以使用<code>mkdir -p ~/.vim/tmp</code>这个命令去创建目录，但我的情况是这个目录已经存在。经过ls命令观察该目录内容，突然发现它的所有者是root用户的，恍然大悟，只要把它换成当前使用的用户名就可以了，于是用以下命令便可解决问题：</p>
+
+<p><code>bash
+sudo chown -Rv username .vim
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>
