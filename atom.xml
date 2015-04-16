@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-04-15T10:37:40+08:00</updated>
+  <updated>2015-04-16T17:08:18+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,86 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[自定义Navigation Bar样式]]></title>
+    <link href="http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style/"/>
+    <updated>2015-04-16T15:51:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style</id>
+    <content type="html"><![CDATA[<p>在开发iOS应用时，自定义Navigation Bar样式是非常普遍的一个需求，所以这里特别整理了一些常见的情况，以供快速查阅。照旧先附上参考的原文<a href="http://www.appcoda.com/customize-navigation-status-bar-ios-7/">链接</a>。</p>
+
+<h3>> 更改导航栏背景色</h3>
+
+<p>这个应该是最常见的需求了，同时也只需一行代码就可以实现：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setBarTintColor:</span><span class="p">[</span><span class="n">UIColor</span> <span class="n">yellowColor</span><span class="p">]];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>> 更改导航栏标题的样式</h3>
+
+<p>有时我们需要修改标题成特殊的字体样式以达到设计上得效果，可以通过设置titleTextAttributes的属性来实现，以下是一些常用的key，同时附上实现代码：</p>
+
+<ul>
+<li>UITextAttributeFont – Key to the font</li>
+<li>UITextAttributeTextColor – Key to the text color</li>
+<li>UITextAttributeTextShadowColor – Key to the text shadow color</li>
+<li>UITextAttributeTextShadowOffset – Key to the offset used for the text shadow</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSShadow</span> <span class="o">*</span><span class="n">shadow</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSShadow</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'><span class="n">shadow</span><span class="p">.</span><span class="n">shadowColor</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIColor</span> <span class="n">grayColor</span><span class="p">];</span>
+</span><span class='line'><span class="n">shadow</span><span class="p">.</span><span class="n">shadowOffset</span> <span class="o">=</span> <span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTitleTextAttributes:</span> <span class="err">@</span><span class="p">{</span>
+</span><span class='line'>  <span class="n">NSForegroundColorAttributeName</span> <span class="o">:</span> <span class="p">[</span><span class="n">UIColor</span> <span class="n">whiteColor</span><span class="p">],</span>
+</span><span class='line'>  <span class="n">NSShadowAttributeName</span> <span class="o">:</span> <span class="n">shadow</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">NSFontAttributeName</span> <span class="o">:</span> <span class="p">[</span><span class="n">UIFont</span> <span class="nl">fontWithName:</span><span class="s">@&quot;HelveticaNeue&quot;</span> <span class="nl">size:</span><span class="mf">21.0</span><span class="p">]</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有些设计会要求使用logo或其他更复杂的内容代替文字显示在标题位置，这个时候我们可以通过设置navigationItem的titleView来实现这些需求，这里以简单地替换成图片为例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 这里的viewController就是对应的要替换标题的那个view controller，而不是navigation controller本身</span>
+</span><span class='line'><span class="n">viewController</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">titleView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIImageView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;title&quot;</span><span class="p">]];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>> 修改导航栏上按钮的颜色</h3>
+
+<p>我们可以通过设置tintColor来实现，要注意的是，这个颜色会同时影响到所有按钮上的文字和图片：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTintColor:</span><span class="p">[</span><span class="n">UIColor</span> <span class="n">whiteColor</span><span class="p">]];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>> 添加更多的导航栏按钮</h3>
+
+<p>这种情况下，我们可以通过设置leftBarButtonItems和rightBarButtonItems来实现，直接给出一段实例代码，大家一看就懂：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIBarButtonItem</span> <span class="o">*</span><span class="n">markItem</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBarButtonItem</span> <span class="nl">barItemWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;mark&quot;</span><span class="p">]</span> <span class="nl">selectedImage:</span><span class="nb">nil</span> <span class="nl">size:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target:</span><span class="n">self</span> <span class="nl">action:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">markButtonClicked:</span><span class="p">)];</span>
+</span><span class='line'><span class="n">UIBarButtonItem</span> <span class="o">*</span><span class="n">starItem</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBarButtonItem</span> <span class="nl">barItemWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;star&quot;</span><span class="p">]</span> <span class="nl">selectedImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;star_selected&quot;</span><span class="p">]</span> <span class="nl">size:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target:</span><span class="n">self</span> <span class="nl">action:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">starButtonClicked:</span><span class="p">)];</span>
+</span><span class='line'><span class="n">self</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">rightBarButtonItems</span> <span class="o">=</span> <span class="err">@</span><span class="p">[</span><span class="n">starItem</span><span class="p">,</span> <span class="n">markItem</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Vim无法打开Swap文件的错误]]></title>
