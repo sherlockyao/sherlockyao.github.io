@@ -1,0 +1,165 @@
+---
+layout: post
+title: "iOS的UI并发处理方案"
+date: 2015-04-17 14:36
+comments: true
+categories: [ios, concurrent, ui, NSOperationQueue, GCD, tableview, cell, 并发, asynchronize]
+---
+
+让用户体验更流畅是大部分应用必须要考虑的方面，我们知道iOS应用中所有UI相关的更新操作必须在主线程中进行，所以一个提升应用流畅性的大原则便是：尽量把那些耗时多，但不与UI更新直接相关的工作移出主线程。以下我将用一个比较常见的TableView Cell更新的例子来展示一下处理UI并发的几个最佳实践。我们的目标是让应用能在处理大量运算的同时，又能及时响应用户的交互以及界面上的事件。
+
+假设我们有一个列表界面，每一行需要显示一个店铺的信息，通常的方案便是Subclass一个TableViewCell，然后提供自定义的方法接收店铺信息数据，并更新到UI上，大致代码如下：
+
+```objc
+
+# StoreInfoCell : UITableViewCell
+
+@implementation StoreInfoCell
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+}
+
+@end
+
+```
+
+需求变化是软件开发的常态，不久PM便会说，在原有的店铺信息中，现在又增加了这个店铺过去七天的客流数据，于是要求应用能在Cell中多显示一个柱状图来表示这个客流数据。我们先来实现这个功能：
+
+```objc
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+  self.histogramImageView.image = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
+}
+
+```
+
+功能已经实现，但是因为HistogramTool这个工具去生成柱状图耗时相当久，我们在运行应用测试时会发现滚动列表界面时有严重的卡顿。接下来我们就来进行优化，显而易见是generateImageForTrafficData这个方法阻塞了主线程从而造成卡顿，我们可以把它移到其他线程中去处理，这里我们采用GCD来实现这个方案：
+
+```objc
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+  self.histogramImageView.image = nil;
+
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		UIImage *histogramImage = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			self.histogramImageView.image = histogramImage;
+		});
+	});
+}
+
+```
+
+经过上面的改进后，我们将看到页面的滚动变得流畅了，但是会发现页面有闪烁的现象，Cell上的柱状图会出现自我切换的问题，同时数据似乎会不匹配，这是为什么呢？原因就在于Reuse Cell，为了提升性能，所有TableView中的Cell都是从它的Reuse Pool中获取来的，所以当快速滚动列表时，新出现的Cell实例其实是一些已经移出界面可视范围被回收了的老Cell实例，但它们被回收时并没有取消异步生成柱状图的过程，所以当它们生成完后会又更新到界面上，这就会造成第7行的Cell显示出了第1行店铺的柱状图，然后过了一会儿又更新成了第7行店铺自己的柱状图。为了解决信息不匹配的问题，我们可以在更新前做一个check：
+
+```objc
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+  self.histogramImageView.image = nil;
+
+	self.trafficData = storeInfo.trafficData;
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+  	TrafficData *data = storeInfo.trafficData;
+		UIImage *histogramImage = [HistogramTool generateImageForTrafficData:data];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			if (data.id == self.trafficData.id) {
+				self.histogramImageView.image = histogramImage;
+			}
+		});
+	});
+}
+
+```
+
+这样虽然解决了信息不匹配的问题，但却还是消耗了很多不必要的计算资源，因为当cell被移出屏幕后，对应cell的柱状图计算过程仍然还在queue中，我们应该取消它们，于是我们引入NSOperationQueue来进一步优化：
+
+```objc
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+  self.histogramImageView.image = nil;
+
+	self.trafficData = storeInfo.trafficData;
+	[self.queue cancelAllOperations];
+  [self asyncDisplayHistogramImage];
+}
+
+- (void)asyncDisplayHistogramImage {
+	NSBlockOperation *operation = [NSBlockOperation new];
+  __weak NSBlockOperation *weakOperation = operation;
+  [operation addExecutionBlock:^{
+    if ([weakOperation isCancelled]) {
+      return;
+    }
+    TrafficData *data = storeInfo.trafficData;
+    UIImage *histogramImage = [HistogramTool generateImageForTrafficData:data];
+    if (![weakOperation isCancelled] && data.id == self.trafficData.id) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        self.histogramImageView.image = histogramImage;
+      });
+    }
+  }];
+  [self.queue addOperation:operation];
+}
+
+```
+
+好了，现在我们有了取消计算的机制，但是如果用Time Profiler工具去查看应用运行情况时会发现，当快速滚动列表时，还是有一些时间浪费在不必要的计算上，这是因为在调用generateImageForTrafficData这个方法前并没有等待时间，当一个cell被显示在页面上时，它便已经开始了这个计算过程，而因为快速滚动的缘故它又被移出了界面，所以这个计算过程其实是浪费了的。所以我们可以加上一些等待时间来继续优化：
+
+```objc
+
+- (void)displayStoreInfo:(StoreInfo *)storeInfo {
+	self.titleLabel.text = storeInfo.title;
+  self.addressLabel.text = storeInfo.address;
+  self.histogramImageView.image = nil;
+
+	self.trafficData = storeInfo.trafficData;
+	[self cancelPreviousOperations];
+	[self performSelector:@selector(asyncDisplayHistogramImage) withObject:nil afterDelay:0.3];
+}
+
+- (void)asyncDisplayHistogramImage {
+	NSBlockOperation *operation = [NSBlockOperation new];
+  __weak NSBlockOperation *weakOperation = operation;
+  [operation addExecutionBlock:^{
+    if ([weakOperation isCancelled]) {
+      return;
+    }
+    TrafficData *data = storeInfo.trafficData;
+    UIImage *histogramImage = [HistogramTool generateImageForTrafficData:data];
+    if (![weakOperation isCancelled] && data.id == self.trafficData.id) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        self.histogramImageView.image = histogramImage;
+      });
+    }
+  }];
+  [self.queue addOperation:operation];
+}
+
+- (void)cancelPreviousOperations {
+  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(asyncDisplayHistogramImage) object:nil];
+  [self.queue cancelAllOperations];
+}
+
+// 然后在对于的TableView Delegate中也加上取消操作
+
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
+	[cell cancelPreviousOperations];
+}
+
+```
+
+通过以上一些方法，你将体会到流畅性上很大的提升，当然你还可以考虑加入image cache来再进一步优化。总之这里就是展示了一些UI并发处理的思路，希望抛砖引玉让大家打造出性能卓越的应用。
+
+
+
+
