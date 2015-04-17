@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-04-16T17:08:18+08:00</updated>
+  <updated>2015-04-17T16:19:42+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,263 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[iOS的UI并发处理方案]]></title>
+    <link href="http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update/"/>
+    <updated>2015-04-17T14:36:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update</id>
+    <content type="html"><![CDATA[<p>让用户体验更流畅是大部分应用必须要考虑的方面，我们知道iOS应用中所有UI相关的更新操作必须在主线程中进行，所以一个提升应用流畅性的大原则便是：尽量把那些耗时多，但不与UI更新直接相关的工作移出主线程。以下我将用一个比较常见的TableView Cell更新的例子来展示一下处理UI并发的几个最佳实践。我们的目标是让应用能在处理大量运算的同时，又能及时响应用户的交互以及界面上的事件。</p>
+
+<p>假设我们有一个列表界面，每一行需要显示一个店铺的信息，通常的方案便是Subclass一个TableViewCell，然后提供自定义的方法接收店铺信息数据，并更新到UI上，大致代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp"># StoreInfoCell : UITableViewCell</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">StoreInfoCell</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需求变化是软件开发的常态，不久PM便会说，在原有的店铺信息中，现在又增加了这个店铺过去七天的客流数据，于是要求应用能在Cell中多显示一个柱状图来表示这个客流数据。我们先来实现这个功能：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>功能已经实现，但是因为HistogramTool这个工具去生成柱状图耗时相当久，我们在运行应用测试时会发现滚动列表界面时有严重的卡顿。接下来我们就来进行优化，显而易见是generateImageForTrafficData这个方法阻塞了主线程从而造成卡顿，我们可以把它移到其他线程中去处理，这里我们采用GCD来实现这个方案：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="n">DISPATCH_QUEUE_PRIORITY_DEFAULT</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>      <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
+</span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>          <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>经过上面的改进后，我们将看到页面的滚动变得流畅了，但是会发现页面有闪烁的现象，Cell上的柱状图会出现自我切换的问题，同时数据似乎会不匹配，这是为什么呢？原因就在于Reuse Cell，为了提升性能，所有TableView中的Cell都是从它的Reuse Pool中获取来的，所以当快速滚动列表时，新出现的Cell实例其实是一些已经移出界面可视范围被回收了的老Cell实例，但它们被回收时并没有取消异步生成柱状图的过程，所以当它们生成完后会又更新到界面上，这就会造成第7行的Cell显示出了第1行店铺的柱状图，然后过了一会儿又更新成了第7行店铺自己的柱状图。为了解决信息不匹配的问题，我们可以在更新前做一个check：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="n">DISPATCH_QUEUE_PRIORITY_DEFAULT</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>      <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>          <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>              <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>          <span class="p">}</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样虽然解决了信息不匹配的问题，但却还是消耗了很多不必要的计算资源，因为当cell被移出屏幕后，对应cell的柱状图计算过程仍然还在queue中，我们应该取消它们，于是我们引入NSOperationQueue来进一步优化：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="n">asyncDisplayHistogramImage</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">__weak</span> <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">([</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}];</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation:</span><span class="n">operation</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好了，现在我们有了取消计算的机制，但是如果用Time Profiler工具去查看应用运行情况时会发现，当快速滚动列表时，还是有一些时间浪费在不必要的计算上，这是因为在调用generateImageForTrafficData这个方法前并没有等待时间，当一个cell被显示在页面上时，它便已经开始了这个计算过程，而因为快速滚动的缘故它又被移出了界面，所以这个计算过程其实是浪费了的。所以我们可以加上一些等待时间来继续优化：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="n">cancelPreviousOperations</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="nl">performSelector:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">withObject:</span><span class="nb">nil</span> <span class="nl">afterDelay:</span><span class="mf">0.3</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">__weak</span> <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">([</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}];</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation:</span><span class="n">operation</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">cancelPreviousOperations</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">NSObject</span> <span class="nl">cancelPreviousPerformRequestsWithTarget:</span><span class="n">self</span> <span class="nl">selector:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">object:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 然后在对于的TableView Delegate中也加上取消操作</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">tableView:</span><span class="p">(</span><span class="n">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span> <span class="nf">didEndDisplayingCell:</span><span class="p">(</span><span class="n">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nv">cell</span> <span class="nf">forRowAtIndexPath:</span><span class="p">(</span><span class="n">NSIndexPath</span><span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">cell</span> <span class="n">cancelPreviousOperations</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过以上一些方法，你将体会到流畅性上很大的提升，当然你还可以考虑加入image cache来再进一步优化。总之这里就是展示了一些UI并发处理的思路，希望抛砖引玉让大家打造出性能卓越的应用。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义Navigation Bar样式]]></title>
