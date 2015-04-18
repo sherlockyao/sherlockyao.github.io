@@ -1,0 +1,41 @@
+---
+layout: post
+title: "Content Hugging vs. Compression Resistance"
+date: 2015-04-18 16:32
+comments: true
+categories: [ios, content hugging, compression resistance, intrinsic, 压缩阻力, 内容吸附, autolayout]
+---
+
+iOS Auto Layout中的Content Hugging（内容吸附）和Compression Resistance（压缩阻力）曾一度让我非常困惑，看过一些说明的文章后当时觉得豁然开朗，但一段时间后便又忘记了，所以我决定再一次全面地整理一下并用博客的形式分享出去，这样可以帮助我自己加强记忆。
+(注：“内容吸附”和“压缩阻力”是特别借用了objccn里文章的翻译内容，非常感谢作者，[原文链接](http://objccn.io/issue-3-5/))
+
+首先，我们先简单说明一下约束（Constraint）中的Priority概念：Auto Layout中，每个约束都有一个1-1000的priority值，其中1000是其默认的值，也是 NSLayoutPriorityRequired 的，意思就是这个约束必须完全得到满足；所有小于1000的值则都是非强制的。系统在实现自动布局时，首先会满足所有priority是1000的约束，然后按照从大到小的值依次去尽量满足非强制性的约束，这种情况下，系统会尽量使结果的值接近于约束要求的值。
+
+现在让我们来具体说明一下Hugging和Resistance到底是什么，用通俗易懂的话来描述的话是这样的：
+
+- Content Hugging：我的内容区域不想被扩展（变高或变宽）
+- Compression Resistance：我的内容区域不想被压缩 （变矮或变短）
+
+注意到了吧，描述里面都有“内容区域”这个概念，这个指的就是Intrinsic Content Size，所以压缩阻力和内容吸附只对定义了Intrinsic Content Size的UI元素有效，否则的话就不存在所谓的“我的内容区域”的概念了。
+
+下面就以一个具体的例子来说明一下这两个属性的作用。假设我们有一个Button放置在界面中，同时设置了两个priority是500的约束：左右各距离父元素 30 points，即如下图所示：
+
+> |-30-[     Button     ]-30-|
+
+此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：
+
+> |----60---[Button]---60----|
+
+但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：
+
+> |-30-[     Button     ]-30-|
+
+然后，因为某些原因，它的父元素的宽度变窄了，在没有任何 Compression Resistance 属性时，它就变成了这样（按钮的文字显示不全了）：
+
+> |-30-[But..]-30-|
+
+此时，如果我们给它设置一个水平priority是750的 Compression Resistance 属性，结果就会是：
+
+> |-25-[Button]-25-|
+
+同样的，如果这个属性的优先级小于500，那结果就没有变化。另外，如果我们把初始的两个左右边距的约束优先级调整到1000，那不管我们怎么设置压缩阻力或内容吸附的属性，都不会改变布局效果，这个按钮会始终保持左右边距30的布局。

@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Content Hugging vs. Compression Resistance - 姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="iOS Auto Layout中的Content Hugging（内容吸附）和Compression Resistance（压缩阻力）曾一度让我非常困惑，看过一些说明的文章后当时觉得豁然开朗，但一段时间后便又忘记了，所以我决定再一次全面地整理一下并用博客的形式分享出去，这样可以帮助我自己加强记忆 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+
+</head>
+
+<body   >
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
+
+<div class="header-right">
+  
+<ul class="main-navigation">
+ <div> 
+  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives">Archives</a></li></div>
+</ul>
+
+</div>
+</header>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Content Hugging vs. Compression Resistance</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-18T16:32:00+08:00" pubdate data-updated="true">Apr 18<span>th</span>, 2015</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>iOS Auto Layout中的Content Hugging（内容吸附）和Compression Resistance（压缩阻力）曾一度让我非常困惑，看过一些说明的文章后当时觉得豁然开朗，但一段时间后便又忘记了，所以我决定再一次全面地整理一下并用博客的形式分享出去，这样可以帮助我自己加强记忆。
+(注：“内容吸附”和“压缩阻力”是特别借用了objccn里文章的翻译内容，非常感谢作者，<a href="http://objccn.io/issue-3-5/">原文链接</a>)</p>
+
+<p>首先，我们先简单说明一下约束（Constraint）中的Priority概念：Auto Layout中，每个约束都有一个1-1000的priority值，其中1000是其默认的值，也是 NSLayoutPriorityRequired 的，意思就是这个约束必须完全得到满足；所有小于1000的值则都是非强制的。系统在实现自动布局时，首先会满足所有priority是1000的约束，然后按照从大到小的值依次去尽量满足非强制性的约束，这种情况下，系统会尽量使结果的值接近于约束要求的值。</p>
+
+<p>现在让我们来具体说明一下Hugging和Resistance到底是什么，用通俗易懂的话来描述的话是这样的：</p>
+
+<ul>
+<li>Content Hugging：我的内容区域不想被扩展（变高或变宽）</li>
+<li>Compression Resistance：我的内容区域不想被压缩 （变矮或变短）</li>
+</ul>
+
+
+<p>注意到了吧，描述里面都有“内容区域”这个概念，这个指的就是Intrinsic Content Size，所以压缩阻力和内容吸附只对定义了Intrinsic Content Size的UI元素有效，否则的话就不存在所谓的“我的内容区域”的概念了。</p>
+
+<p>下面就以一个具体的例子来说明一下这两个属性的作用。假设我们有一个Button放置在界面中，同时设置了两个priority是500的约束：左右各距离父元素 30 points，即如下图所示：</p>
+
+<blockquote><p>|-30-[     Button     ]-30-|</p></blockquote>
+
+<p>此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：</p>
+
+<blockquote><p>|&mdash;&mdash;60&mdash;&ndash;[Button]&mdash;-60&mdash;&mdash;|</p></blockquote>
+
+<p>但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：</p>
+
+<blockquote><p>|-30-[     Button     ]-30-|</p></blockquote>
+
+<p>然后，因为某些原因，它的父元素的宽度变窄了，在没有任何 Compression Resistance 属性时，它就变成了这样（按钮的文字显示不全了）：</p>
+
+<blockquote><p>|-30-[But..]-30-|</p></blockquote>
+
+<p>此时，如果我们给它设置一个水平priority是750的 Compression Resistance 属性，结果就会是：</p>
+
+<blockquote><p>|-25-[Button]-25-|</p></blockquote>
+
+<p>同样的，如果这个属性的优先级小于500，那结果就没有变化。另外，如果我们把初始的两个左右边距的约束优先级调整到1000，那不管我们怎么设置压缩阻力或内容吸附的属性，都不会改变布局效果，这个按钮会始终保持左右边距30的布局。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-18T16:32:00+08:00" pubdate data-updated="true">Apr 18<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/autolayout/'>autolayout</a>, <a class='category' href='/blog/categories/compression-resistance/'>compression resistance</a>, <a class='category' href='/blog/categories/content-hugging/'>content hugging</a>, <a class='category' href='/blog/categories/intrinsic/'>intrinsic</a>, <a class='category' href='/blog/categories/ios/'>ios</a>, <a class='category' href='/blog/categories/nei-rong-xi-fu/'>内容吸附</a>, <a class='category' href='/blog/categories/ya-suo-zu-li/'>压缩阻力</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/" data-via="" data-counturl="http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/04/17/no-blocking-ui-cell-update/" title="Previous Post: iOS的UI并发处理方案">&laquo; iOS的UI并发处理方案</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
+    
+  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
+</section>
+
+  <section>
+  <h1>Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/hugging-vs-resistance/">Content Hugging vs. Compression Resistance</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/17/no-blocking-ui-cell-update/">iOS的UI并发处理方案</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/16/customize-navigation-bar-style/">自定义Navigation Bar样式</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/15/vim-swap/">Vim无法打开Swap文件的错误</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/14/set-up-rails-on-mac/">Mac上安装Ruby on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/10/viper-practise-2/">VIPER实践（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+    
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2015
+
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/';
+        var disqus_url = 'http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+</body>
+</html>
