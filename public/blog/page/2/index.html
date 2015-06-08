@@ -9,7 +9,7 @@
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="MagicalRecord是一个非常好用的工具，让我们更方便地使用Core Data，同时代码上也能变得更简洁。但是简单易用的代价就是如果你不清楚它具体的实现机制时，当某些复杂情况出现后，产生一些“莫名其妙”的问题而导致手足无措。所以如果对Core Data本身不太了解的开发者， &hellip;">
+  <meta name="description" content="工作中的项目需要一个简单的Web服务器，考虑到Node.js快捷方便的特性就选择它来搭建。在开发阶段，使用node命令就能很快速地启动服务器来调试，但是到实际部署阶段，就要考虑把它放到一个单独的后台进程去运行，同时一般还会需要Nginx来做反向代理，所以在Google上搜了一通后选择了Nginx &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -55,6 +55,176 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-10T10:33:00+08:00" pubdate data-updated="true">Nov 10<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/11/10/deploy-node-project/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2014/11/10/deploy-node-project/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>工作中的项目需要一个简单的Web服务器，考虑到Node.js快捷方便的特性就选择它来搭建。在开发阶段，使用node命令就能很快速地启动服务器来调试，但是到实际部署阶段，就要考虑把它放到一个单独的后台进程去运行，同时一般还会需要Nginx来做反向代理，所以在Google上搜了一通后选择了Nginx + Upstart + Node的组合方式。这里我就大致记录下自己的配置步骤，以供像我一样初次部署的生手参考。(注：我们用的是ubuntu的部署系统，所以以下所有命令都是以ubuntu上的形式给出)</p>
+
+<p>首先是安装各种必要的程序：Nginx, Node, Vi等，这里就不说明了。安装完毕后，我们先单独创建一个node用户来跑所有的node projects：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo adduser <span class="se">\\</span>
+</span><span class='line'>    --system <span class="se">\\</span>
+</span><span class='line'>    --shell /bin/bash <span class="se">\\</span>
+</span><span class='line'>    --gecos <span class="s1">&#39;user for running node.js projects&#39;</span> <span class="se">\\</span>
+</span><span class='line'>    --group <span class="se">\\</span>
+</span><span class='line'>    --disabled-password <span class="se">\\</span>
+</span><span class='line'>    --home /home/node <span class="se">\\</span>
+</span><span class='line'>    node
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>接下来便是配置一段Upstart的脚本来启动我们的Node应用，Ubuntu下Upstart的脚本默认是放在/etc/init下的，你可以创建一个和自己项目有关的myapp.conf文件放在下面，里面的内容如下(请把对应的文件目录和js文件替换成适合你自己项目的值)：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>description <span class="s2">&quot;XXX node server&quot;</span>
+</span><span class='line'>author  <span class="s2">&quot;Sherlock Yao&quot;</span>
+</span><span class='line'>
+</span><span class='line'>start on <span class="o">(</span><span class="nb">local</span>-filesystems and net-device-up <span class="nv">IFACE</span><span class="o">=</span>eth0<span class="o">)</span>
+</span><span class='line'>stop on shutdown
+</span><span class='line'>
+</span><span class='line'>respawn
+</span><span class='line'>
+</span><span class='line'>script
+</span><span class='line'>        <span class="nb">cd</span> /var/local/sites/myapp
+</span><span class='line'>        <span class="nb">exec </span>sudo -u node <span class="nv">NODE_ENV</span><span class="o">=</span>production /usr/local/bin/node /var/local/sites/myapp/express.js &gt;&gt; /var/log/myapp.log 2&gt;&amp;1
+</span><span class='line'>end script
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后便是把你要部署的代码放到服务器上，我们是用Git管理的，所以直接clone下来，这里要注意的就是一定要把文件的权限附给node用户，包括日志文件：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo mkdir -p /var/local/sites/myapp
+</span><span class='line'>sudo chown node /var/local/sites/myapp
+</span><span class='line'><span class="nb">cd</span> /var/local/sites/myapp
+</span><span class='line'>sudo -u node git clone /path/to/myapp.git
+</span><span class='line'>
+</span><span class='line'>sudo touch /var/log/myapp.log
+</span><span class='line'>sudo chown node /var/log/myapp.log
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后添加Nginx的反向代理，配置文件(/etc/nginx/sites-available/myapp)内容如下，记得把myapp替换成适合你自己情况的名字：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#添加完成后用&quot;sudo service nginx restart&quot;来重启nginx</span>
+</span><span class='line'>
+</span><span class='line'>upstream myapp <span class="o">{</span>
+</span><span class='line'>    server 127.0.0.1:3000;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>server <span class="o">{</span>
+</span><span class='line'>    listen 80;
+</span><span class='line'>    server_name myapp.com; <span class="c">#这里写上你自己需要的域名或ip</span>
+</span><span class='line'>    access_log /var/log/nginx/myapp.log;
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># pass the request to the node.js server with the correct headers and much more can be added, see nginx config options</span>
+</span><span class='line'>    location / <span class="o">{</span>
+</span><span class='line'>      proxy_set_header X-Real-IP <span class="nv">$remote_addr</span>;
+</span><span class='line'>      proxy_set_header X-Forwarded-For <span class="nv">$proxy_add_x_forwarded_for</span>;
+</span><span class='line'>      proxy_set_header Host <span class="nv">$http_host</span>;
+</span><span class='line'>      proxy_set_header X-NginX-Proxy <span class="nb">true</span>;
+</span><span class='line'>
+</span><span class='line'>      proxy_pass http://myapp/;
+</span><span class='line'>      proxy_redirect off;
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一切配置妥当后，就可以用下面的命令开启、查看、停止你的应用了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start myapp
+</span><span class='line'>sudo status myapp
+</span><span class='line'>sudo stop myapp
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外附上一篇我参考的<a href="http://caolanmcmahon.com/posts/deploying_node_js_with_upstart/">英文博文</a>，里面有更详尽的说明。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -621,102 +791,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-05-26T13:59:00+08:00" pubdate data-updated="true">May 26<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/05/26/making-a-cocoapod/#disqus_thread"
-             data-disqus-identifier="http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近想把自己正在做的iOS项目里的一个手势控制代码单独提出来以library的形式分享出去，本打算只是简单地在Github上建个public库然后把代码文件放上去，但作为一个“合格”的程序员，要时刻保持探索精神，所以打算做成时下流行的Cocopod公布出去。虽然要分享的代码作为一个pod还远不够格，但即使是菜鸟也应该为开源世界做点贡献，以下是随pod创建过程记录的一些notes，供大家参考。</p>
-
-<p>首先给出官方指导链接<a href="http://guides.cocoapods.org/making/making-a-cocoapod.html">Making a CocoaPod</a>，我基本就是参考这篇文章来操作的。</p>
-
-<ul>
-<li><p>第一步就是新建目录结构<code>pod lib create SYDemoPod</code><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>（我是采用完全从头开始创建的方法，所以对于如何把已经放在github上的文件变为pod的过程，这篇文章不会涵盖），执行完后pod就会自动在当前文件夹创建一个SYDemoPod的文件夹，里面会生成一些默认的文件和目录。</p></li>
-<li><p>下一步就是把我需要发布的文件放到Classes目录下，比方说是文件SYPod.h和SYPod.m，因为是从我的一个iOS项目里提出来的，暂时就只让它作为iOS的库好了，所以就把他们拷贝到Classes的ios目录下，同时修改.podspec文件，把里面的信息改成自己需要的（如果不知道怎么写，可以找个其他的pod照着写就行），这里有一个tip，在source file的配置项里，加上<code>'Classes', 'Classes/**/*.{h,m}'</code>，这样就可以把Classes下面所有的文件加进去了，不然是会加根目录下的文件。</p></li>
-<li><p>接下来修改Example目里下的Podfile，配置pod依赖：</p></li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  platform :ios, <span class="s1">&#39;6.0&#39;</span>
-</span><span class='line'>
-</span><span class='line'>  pod <span class="s2">&quot;SYDemoPod&quot;</span>, :path <span class="o">=</span>&gt; <span class="s2">&quot;../&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>  现在我们就可以创建一个Example项目到那个文件夹里面，作为给其他用户演示如何使用我的这个库的示例项目。用XCode新建完项目，然后命令行<code>pod install</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>安装依赖，接着打开.workspace文件后你就可以coding你的示例代码了。</p>
-
-<ul>
-<li><p>把该写的代码都完成后，就万事俱备，只欠发布了。我们先来验证一下podspec文件，在Pod目录下运行<code>pod lib lint</code>命令，当验证没问题后，我们就可以把所有文件都提交并push到自己的github上去，接下来我们要实际测试一下这个pod是否有效。</p>
-
-<p>  在本地新建一个项目，同时加一个Podfile，加上如下配置：</p></li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  <span class="c"># 这里的url就是对应你自己的pod的github链接</span>
-</span><span class='line'>  pod <span class="s1">&#39;SYDemoPod&#39;</span>, :git <span class="o">=</span>&gt; <span class="s1">&#39;https://example.com/URL/to/repo/SYDemoPod.git&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>  配置好后运行<code>pod install</code>或<code>pod update</code>，然后看看是否能正确添加依赖，如果没有任何问题，那就可以发布啦，依次使用以下命令即可：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  rake release
-</span><span class='line'>
-</span><span class='line'>  pod trunk push SYDemoPod.podspec
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另：如果执行<code>pod trunk push</code>命令时提示你要创建一个session，那就先<code>pod trunk register</code>先注册一下就可以了</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>我用的pod版本是0.29.0<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>笔者此时运行pod命令时，发现pod不是最新版本，所以升级到了0.32.1<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -749,6 +823,10 @@
   <section>
   <h1>Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/04/18/hugging-vs-resistance/">Content Hugging vs. Compression Resistance</a>
@@ -800,10 +878,6 @@
     
       <li class="post">
         <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/05/26/making-a-cocoapod/">Making a CocoaPod</a>
       </li>
     
   </ul>
