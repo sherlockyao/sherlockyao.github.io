@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: ui | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: UI | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/ui/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-06-08T14:54:41+08:00</updated>
+  <updated>2015-06-09T16:43:12+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -14,181 +14,47 @@
 
   
   <entry>
-    <title type="html"><![CDATA[iOS的UI并发处理方案]]></title>
-    <link href="http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update/"/>
-    <updated>2015-04-17T14:36:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update</id>
-    <content type="html"><![CDATA[<p>让用户体验更流畅是大部分应用必须要考虑的方面，我们知道iOS应用中所有UI相关的更新操作必须在主线程中进行，所以一个提升应用流畅性的大原则便是：尽量把那些耗时多，但不与UI更新直接相关的工作移出主线程。以下我将用一个比较常见的TableView Cell更新的例子来展示一下处理UI并发的几个最佳实践。我们的目标是让应用能在处理大量运算的同时，又能及时响应用户的交互以及界面上的事件。</p>
+    <title type="html"><![CDATA[为 UIActivityViewController 添加自定义的 UIActivity 选项]]></title>
+    <link href="http://sherlockyao.com/blog/2015/06/09/custom-uiactivity/"/>
+    <updated>2015-06-09T15:13:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/06/09/custom-uiactivity</id>
+    <content type="html"><![CDATA[<p>在现今开发应用的过程中，为其添加分享功能几乎成了一个不可或缺的需求。而 iOS 里的 UIActivityViewController 为我们提供了一种非常简单、快速的实现方案，因此往往成为初期快速迭代中的第一选择。但是，其自带的 Activity Type 毕竟有限，所以有时我们需要添加一些自定义的类型来满足需求。这里我就简单说明一下如何通过继承 UIActivity 来添加自定义选项。</p>
 
-<p>假设我们有一个列表界面，每一行需要显示一个店铺的信息，通常的方案便是Subclass一个TableViewCell，然后提供自定义的方法接收店铺信息数据，并更新到UI上，大致代码如下：</p>
-
-<p>```objc</p>
-
-<h1>StoreInfoCell : UITableViewCell</h1>
-
-<p>@implementation StoreInfoCell</p>
+<p>首先，让我们再简单认识一下UIActivityViewController，它到底是用来做什么的呢？（UIActivityViewController自从 iOS6 开始便被加入到 API 中，要具体了解请看<a href="http://nshipster.com/uiactivityviewcontroller/">此文</a>）总得来说，它主要做两件事：</p>
 
 <ul>
-<li>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-}</li>
+<li><p>它从你的应用接收各种对象数据，可以是 NSString, NSAttributedString, NSURL, UIImage 等等，它们被称为 Activity Items。</p></li>
+<li><p>它管理着所有的 Activities，它把接收到的数据传递给每个 Activity，同时展示给用户；这些 Activities 包括系统自带的，用户自定义的，以及来自 Share and Action Extensions 的。</p></li>
 </ul>
 
 
-<p>@end</p>
+<p>它展示的界面效果是这样的：</p>
 
-<p>```</p>
+<p><img src="%20/images/20150609/uiavc.png" title="" alt="File Inspector" /></p>
 
-<p>需求变化是软件开发的常态，不久PM便会说，在原有的店铺信息中，现在又增加了这个店铺过去七天的客流数据，于是要求应用能在Cell中多显示一个柱状图来表示这个客流数据。我们先来实现这个功能：</p>
+<p>它把 Activities 分成了上下两部分，上面的都是属于 Share 类别的，而下面的则是 Action 类别。UIActivityViewController 的 UI 界面是系统生成的，不支持自定义，所以如果对界面有特殊要求的话，恐怕只能自己去实现相应的功能了（这里有一个<a href="https://github.com/overshare/overshare-kit">开源库</a>可以参考），但是你也失去了其他应用实现的 Share Extensions 和 Action Extensions 的支持了。</p>
 
-<p>```objc</p>
+<p>言归正传，我们来看一下如何添加一个自定义的分享选项。其实过程非常简单，你只需要新建一个类，把它作为 UIActivity 的子类，然后重载以下这些方法：</p>
 
 <ul>
-<li>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
-}</li>
+<li><p><code>+ (UIActivityCategory)activityCategory</code> 这个方法就是告诉系统这个 Activity 是 Action 类型还是 Share 类型，默认是 Action，所以我们这里要返回 UIActivityCategoryShare。</p></li>
+<li><p><code>- (NSString *)activityType</code> 用来区分不同 activity 的字符串，用你的 bundle id 做前缀就会避免冲突</p></li>
+<li><p><code>- (NSString *)activityTitle</code> 显示在选项图标下的文字</p></li>
+<li><p><code>- (UIImage *)activityImage</code> 图标素材，这里要注意的是，目前只有 iOS 8 才支持显示彩色的图标，在这之前，你所提供的素材其实是作为 mask 来使用的，显示的则是黑白效果</p></li>
+<li><p><code>- (BOOL)canPerformWithActivityItems:(NSArray *)activityItems</code> 这里就是你通过 items 来判断当前 Activity 是否支持，如果不支持（返回No），则当前选项不会在界面中显示出来</p></li>
+<li><p><code>- (void)prepareWithActivityItems:(NSArray *)activityItems</code> 为分享做准备，你必须在这里把这些 items 保存下来，然后做一些适当的准备工作</p></li>
+<li><p><code>- (void)performActivity</code> 真正执行 share 动作的地方，这里要注意的是，不管分享成功与否，都要在结束后调用 <code>- (void)activityDidFinish:(BOOL)completed</code> 这个方法来通知系统分享结束了</p></li>
 </ul>
 
 
-<p>```</p>
+<p>实现好我们自定义的选项后，使用起来就非常简单了：</p>
 
-<p>功能已经实现，但是因为HistogramTool这个工具去生成柱状图耗时相当久，我们在运行应用测试时会发现滚动列表界面时有严重的卡顿。接下来我们就来进行优化，显而易见是generateImageForTrafficData这个方法阻塞了主线程从而造成卡顿，我们可以把它移到其他线程中去处理，这里我们采用GCD来实现这个方案：</p>
+<p><code>objc
+NSArray* activities = @[ [CustomActivity1 new], [CustomActivity2 new] ];
+[[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:activities]
+</code></p>
 
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      UIImage *histogramImage = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
-      dispatch_async(dispatch_get_main_queue(), ^{
-          self.histogramImageView.image = histogramImage;
-      });
-  });
-}</p></li>
-</ul>
-
-
-<p>```</p>
-
-<p>经过上面的改进后，我们将看到页面的滚动变得流畅了，但是会发现页面有闪烁的现象，Cell上的柱状图会出现自我切换的问题，同时数据似乎会不匹配，这是为什么呢？原因就在于Reuse Cell，为了提升性能，所有TableView中的Cell都是从它的Reuse Pool中获取来的，所以当快速滚动列表时，新出现的Cell实例其实是一些已经移出界面可视范围被回收了的老Cell实例，但它们被回收时并没有取消异步生成柱状图的过程，所以当它们生成完后会又更新到界面上，这就会造成第7行的Cell显示出了第1行店铺的柱状图，然后过了一会儿又更新成了第7行店铺自己的柱状图。为了解决信息不匹配的问题，我们可以在更新前做一个check：</p>
-
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>  self.trafficData = storeInfo.trafficData;
-dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-  TrafficData <em>data = storeInfo.trafficData;
-      UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-      dispatch_async(dispatch_get_main_queue(), ^{
-          if (data.id == self.trafficData.id) {
-              self.histogramImageView.image = histogramImage;
-          }
-      });
-  });
-}</p></li>
-</ul>
-
-
-<p>```</p>
-
-<p>这样虽然解决了信息不匹配的问题，但却还是消耗了很多不必要的计算资源，因为当cell被移出屏幕后，对应cell的柱状图计算过程仍然还在queue中，我们应该取消它们，于是我们引入NSOperationQueue来进一步优化：</p>
-
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>  self.trafficData = storeInfo.trafficData;
-  [self.queue cancelAllOperations];
-[self asyncDisplayHistogramImage];
-}</p></li>
-<li><p>(void)asyncDisplayHistogramImage {
-  NSBlockOperation <em>operation = [NSBlockOperation new];
-__weak NSBlockOperation </em>weakOperation = operation;
-[operation addExecutionBlock:^{
-  if ([weakOperation isCancelled]) {
-    return;
-  }
-  TrafficData <em>data = storeInfo.trafficData;
-  UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-  if (![weakOperation isCancelled] &amp;&amp; data.id == self.trafficData.id) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      self.histogramImageView.image = histogramImage;
-    });
-  }
-}];
-[self.queue addOperation:operation];
-}</p></li>
-</ul>
-
-
-<p>```</p>
-
-<p>好了，现在我们有了取消计算的机制，但是如果用Time Profiler工具去查看应用运行情况时会发现，当快速滚动列表时，还是有一些时间浪费在不必要的计算上，这是因为在调用generateImageForTrafficData这个方法前并没有等待时间，当一个cell被显示在页面上时，它便已经开始了这个计算过程，而因为快速滚动的缘故它又被移出了界面，所以这个计算过程其实是浪费了的。所以我们可以加上一些等待时间来继续优化：</p>
-
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>  self.trafficData = storeInfo.trafficData;
-  [self cancelPreviousOperations];
-  [self performSelector:@selector(asyncDisplayHistogramImage) withObject:nil afterDelay:0.3];
-}</p></li>
-<li><p>(void)asyncDisplayHistogramImage {
-  NSBlockOperation <em>operation = [NSBlockOperation new];
-__weak NSBlockOperation </em>weakOperation = operation;
-[operation addExecutionBlock:^{
-  if ([weakOperation isCancelled]) {
-    return;
-  }
-  TrafficData <em>data = storeInfo.trafficData;
-  UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-  if (![weakOperation isCancelled] &amp;&amp; data.id == self.trafficData.id) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      self.histogramImageView.image = histogramImage;
-    });
-  }
-}];
-[self.queue addOperation:operation];
-}</p></li>
-<li><p>(void)cancelPreviousOperations {
-[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(asyncDisplayHistogramImage) object:nil];
-[self.queue cancelAllOperations];
-}</p></li>
-</ul>
-
-
-<p>// 然后在对于的TableView Delegate中也加上取消操作</p>
-
-<ul>
-<li>(void)tableView:(UITableView <em>)tableView didEndDisplayingCell:(UITableViewCell </em>)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
-  [cell cancelPreviousOperations];
-}</li>
-</ul>
-
-
-<p>```</p>
-
-<p>通过以上一些方法，你将体会到流畅性上很大的提升，当然你还可以考虑加入image cache来再进一步优化。总之这里就是展示了一些UI并发处理的思路，希望抛砖引玉让大家打造出性能卓越的应用。</p>
+<p>更多详细内容请点击这篇<a href="http://getnotebox.com/developer/uiactivityviewcontroller-ios-8/">参考文章</a>继续阅读</p>
 ]]></content>
   </entry>
   
