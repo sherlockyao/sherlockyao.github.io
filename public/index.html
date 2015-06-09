@@ -9,7 +9,7 @@
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="这次分享一个关于 Core Data 数据迁移的小经验。工作中遇到需求，要将原有数据结构中的一个 To-One 关系改成 To-Many（比方说把一个 Book 对应一个 Author 的关系改成对应多个 Authors）。根据 Core Data 的文档： Changing a &hellip;">
+  <meta name="description" content="在现今开发应用的过程中，为其添加分享功能几乎成了一个不可或缺的需求。而 iOS 里的 UIActivityViewController 为我们提供了一种非常简单、快速的实现方案，因此往往成为初期快速迭代中的第一选择。但是，其自带的 Activity Type 毕竟有限， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -55,6 +55,83 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/06/09/custom-uiactivity/">为 UIActivityViewController 添加自定义的 UIActivity 选项</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-06-09T15:13:00+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/06/09/custom-uiactivity/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2015/06/09/custom-uiactivity/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在现今开发应用的过程中，为其添加分享功能几乎成了一个不可或缺的需求。而 iOS 里的 UIActivityViewController 为我们提供了一种非常简单、快速的实现方案，因此往往成为初期快速迭代中的第一选择。但是，其自带的 Activity Type 毕竟有限，所以有时我们需要添加一些自定义的类型来满足需求。这里我就简单说明一下如何通过继承 UIActivity 来添加自定义选项。</p>
+
+<p>首先，让我们再简单认识一下UIActivityViewController，它到底是用来做什么的呢？（UIActivityViewController自从 iOS6 开始便被加入到 API 中，要具体了解请看<a href="http://nshipster.com/uiactivityviewcontroller/">此文</a>）总得来说，它主要做两件事：</p>
+
+<ul>
+<li><p>它从你的应用接收各种对象数据，可以是 NSString, NSAttributedString, NSURL, UIImage 等等，它们被称为 Activity Items。</p></li>
+<li><p>它管理着所有的 Activities，它把接收到的数据传递给每个 Activity，同时展示给用户；这些 Activities 包括系统自带的，用户自定义的，以及来自 Share and Action Extensions 的。</p></li>
+</ul>
+
+
+<p>它展示的界面效果是这样的：</p>
+
+<p><img src="/images/20150609/uiavc.png" title="" alt="File Inspector" /></p>
+
+<p>它把 Activities 分成了上下两部分，上面的都是属于 Share 类别的，而下面的则是 Action 类别。UIActivityViewController 的 UI 界面是系统生成的，不支持自定义，所以如果对界面有特殊要求的话，恐怕只能自己去实现相应的功能了（这里有一个<a href="https://github.com/overshare/overshare-kit">开源库</a>可以参考），但是你也失去了其他应用实现的 Share Extensions 和 Action Extensions 的支持了。</p>
+
+<p>言归正传，我们来看一下如何添加一个自定义的分享选项。其实过程非常简单，你只需要新建一个类，把它作为 UIActivity 的子类，然后重载以下这些方法：</p>
+
+<ul>
+<li><p><code>+ (UIActivityCategory)activityCategory</code> 这个方法就是告诉系统这个 Activity 是 Action 类型还是 Share 类型，默认是 Action，所以我们这里要返回 UIActivityCategoryShare。</p></li>
+<li><p><code>- (NSString *)activityType</code> 用来区分不同 activity 的字符串，用你的 bundle id 做前缀就会避免冲突</p></li>
+<li><p><code>- (NSString *)activityTitle</code> 显示在选项图标下的文字</p></li>
+<li><p><code>- (UIImage *)activityImage</code> 图标素材，这里要注意的是，目前只有 iOS 8 才支持显示彩色的图标，在这之前，你所提供的素材其实是作为 mask 来使用的，显示的则是黑白效果</p></li>
+<li><p><code>- (BOOL)canPerformWithActivityItems:(NSArray *)activityItems</code> 这里就是你通过 items 来判断当前 Activity 是否支持，如果不支持（返回No），则当前选项不会在界面中显示出来</p></li>
+<li><p><code>- (void)prepareWithActivityItems:(NSArray *)activityItems</code> 为分享做准备，你必须在这里把这些 items 保存下来，然后做一些适当的准备工作</p></li>
+<li><p><code>- (void)performActivity</code> 真正执行 share 动作的地方，这里要注意的是，不管分享成功与否，都要在结束后调用 <code>- (void)activityDidFinish:(BOOL)completed</code> 这个方法来通知系统分享结束了</p></li>
+</ul>
+
+
+<p>实现好我们自定义的选项后，使用起来就非常简单了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSArray</span><span class="o">*</span> <span class="n">activities</span> <span class="o">=</span> <span class="err">@</span><span class="p">[</span> <span class="p">[</span><span class="n">CustomActivity1</span> <span class="n">new</span><span class="p">],</span> <span class="p">[</span><span class="n">CustomActivity2</span> <span class="n">new</span><span class="p">]</span> <span class="p">];</span>
+</span><span class='line'><span class="p">[[</span><span class="n">UIActivityViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithActivityItems:</span><span class="n">activityItems</span> <span class="nl">applicationActivities:</span><span class="n">activities</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>更多详细内容请点击这篇<a href="http://getnotebox.com/developer/uiactivityviewcontroller-ios-8/">参考文章</a>继续阅读</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -738,64 +815,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-01-06T13:37:00+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2015</time>
-        
-           | <a href="/blog/2015/01/06/blur-effect-view/#disqus_thread"
-             data-disqus-identifier="http://sherlockyao.com/blog/2015/01/06/blur-effect-view/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在iOS升级到7时，巨大的UI风格改变给我们带来了全新的视觉感受，而那个独特的Navigation Bar毛玻璃(模糊背景)效果更是让很多人赞叹不已。现在iOS 8中Apple已经添加了UIKit层对这个Blur Effect的原生支持，我是以WWDC 2014中某一个视频为契机找到了相关的内容，特此整理和记录下。我只是简单地做个Note，<a href="http://www.tuicool.com/articles/mqUj2eY">这里</a>有个较完整的说明，想更深入了解的朋友请自行Google，关键词：UIBlurEffect、UIVibrancyEffect、UIVisualEffectView。</p>
-
-<p>在最新的XCode里，IB中的Object Libary已经默认自带Visual Effect View的控件，可以直接拖拽使用，非常方便。如果想用代码来添加的话，大致是这样的：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="n">UIVisualEffect</span> <span class="o">*</span><span class="n">effect</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBlurEffect</span> <span class="nl">effectWithStyle:</span><span class="n">UIBlurEffectStyleLight</span><span class="p">];</span>
-</span><span class='line'>  <span class="n">UIVisualEffectView</span> <span class="o">*</span><span class="n">effectView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIVisualEffectView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithEffect:</span><span class="n">effect</span><span class="p">];</span>
-</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">contentView</span><span class="p">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIColor</span> <span class="nl">colorWithWhite:</span><span class="mf">0.7</span> <span class="nl">alpha:</span><span class="mf">0.3</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">blurView</span> <span class="nl">addSubview:</span><span class="n">effectView</span><span class="p">];</span>
-</span><span class='line'>  <span class="n">effectView</span><span class="p">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">blurView</span><span class="p">.</span><span class="n">bounds</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以发现，就算用代码也非常简便，和使用其他UI元素一样，创建并加入到view的tree中(当然也可以用autolayout来控制位置)。附赠一个小贴士，经过测试，如果加入了visual effect view后，再去修改其父view(上面代码中的self.blurView)的alpha值时，其模糊效果就会失效了，具体底层原因是什么还没深究过，这只是我个人的实践结果。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -826,6 +845,10 @@
   <section>
   <h1>Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/06/09/custom-uiactivity/">为 UIActivityViewController 添加自定义的 UIActivity 选项</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a>
@@ -877,10 +900,6 @@
     
       <li class="post">
         <a href="/blog/2014/09/01/uiscrollview-with-autolayout/">UIScrollView在Autolayout下的实践经验</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/07/08/first-sight-of-docker/">初识Docker</a>
       </li>
     
   </ul>
