@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 贴士 | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/tie-shi/atom.xml" rel="self"/>
+  <link href="http://sherlockyao.com/"/>
+  <updated>2015-06-28T16:40:27+08:00</updated>
+  <id>http://sherlockyao.com/</id>
+  <author>
+    <name><![CDATA[Sherlock Yao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[iOS UITableView 使用小贴士]]></title>
+    <link href="http://sherlockyao.com/blog/2015/06/28/uitableview-tips/"/>
+    <updated>2015-06-28T15:27:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/06/28/uitableview-tips</id>
+    <content type="html"><![CDATA[<p>UITableView 可以说是搭建应用时必不可少的控件之一，同时也是最常见、遇到最多自定义需求的控件之一，所以今天这里总结了几个平时使用时的小技巧，给自己备忘的同时也分享给大家。</p>
+
+<h3>> 去除多余的Separator</h3>
+
+<p>有时，我们会使用到table view自带的行分隔线样式，但是会遇到一个问题，就是当列表内没有cell时，或者cell数量不足以填充列表可见高度时，列表仍然会显示额外的分隔线。一个快速的解决方案是给table view设置一个空白的footer view：</p>
+
+<p>```objc</p>
+
+<p>tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];</p>
+
+<p>```</p>
+
+<h3>> 设置初始显示位置</h3>
+
+<p>在一些用例场景中，我们会要求当用户进入到一个列表页面时，他需要首先看到列表最底部的cell（或者其他一些位置不在top的cell）。通常我们第一反应便是在 UIViewController 的 viewWillAppear: 方法中用代码把table view滚动到需要的位置，但实际上这个方案并不奏效（造成这个的原因是，在viewWillAppear的这个阶段，view还没有真正地去layout，所以table view此时还不知道它真正的content size，也就无法滚动到正确的位置）；紧接着，我们会尝试把代码移动到 viewDidAppear: 方法中，结果确实起作用了，但是用户会在视觉上看到一个滚动的过程，所以并不理想。这里提供一种比较trick的解决方案来处理这个问题：</p>
+
+<p>```objc</p>
+
+<ul>
+<li><p>(void)viewDidLayoutSubviews {
+  [super viewDidLayoutSubviews];</p>
+
+<p>  if (!self.hasFinishedLayoutView) {
+      self.hasFinishedLayoutView = YES; // 这里用一个flag来避免多次执行</p>
+
+<pre><code>  [self.tableView layoutIfNeeded];
+
+  NSIndexPath* indexPath = ...; // 定义要滚动到的位置
+  [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+</code></pre>
+
+<p>  }
+}</p></li>
+</ul>
+
+
+<p>```</p>
+
+<p>我们把滚动代码移到 viewDidLayoutSubviews 这个生命周期方法中去，这样就可以成功了。注意一点：我这里手动调用了一下table view的layoutIfNeeded方法，因为在我的实践中，我的view都是用autolayout来构建的，如果这里不手动layout一下，table view的内容大小在这个阶段还是不正确的。</p>
+
+<h3>> 随着Cell一起滚动的Section Header</h3>
+
+<p>UITableView的section header view有一个自带的炫酷功能，就是浮动(floating)，当列表滚动的时候，它会自动附着在顶部直到其他Section的内容把它顶掉。但是我们有时候不想要这样的效果，我们希望它能跟着cell一起滚动，那应该怎么处理呢？很不幸的是，官方公开的API中并不提供这种选项，那怎么办呢？我自己选择的一种解决方案就是，用cell的方式来实现header的功能：1）去掉所有section header的定义； 2）自己维护好DataSource的index path关系，每个section的第一行是header cell，接下去的才是真正展示数据的cell。</p>
+
+<h3>> 自适应高度的Cell（Self-Sizing Cell）</h3>
+
+<p>关于这个话题，网上已经有很多教程了，我这里就不再赘述，而是列出一些关键点以供备忘用。因为要能灵活运用这个功能，了解其原理是很重要的，tips只是为了不违背“好记性不如烂笔头”这个亘古不变的告诫，所以如果大家对其仍一知半解的话，建议看WWDC官方视频深入了解一下。<a href="https://developer.apple.com/videos/wwdc/2014/#226">视频链接请戳这里</a></p>
+
+<p>下面是一些要点：</p>
+
+<ul>
+<li><p>把UITableView的<strong>rowHeight</strong>属性设置成<strong>UITableViewAutomaticDimension</strong></p></li>
+<li><p>把UITableView的<strong>estimatedRowHeight</strong>属性设置成适合实际情况的估算值</p></li>
+<li><p>如果使用Autolayout约束的方式来定义cell的高度，一定要加足够多的约束，从而能让cell通过这些约束计算出对应的高度。比如：一个只显示一个UILabel的cell，我们要给label同时加上距离ContentView top和bottom两个约束，这样cell才能通过label内容的高度，再加上上下距离来确定cell需要的实际高度是多少。</p></li>
+<li><p>一般涉及到动态高度的情况都会有UILabel元素的加入，所以如果想要通过label的内容来扩大cell高度的话，记得要把numberOfLines属性设置成0</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
