@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-06-28T16:50:11+08:00</updated>
+  <updated>2015-08-08T16:27:48+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,79 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[使用Block时何时需要WeakSelf和StrongSelf?]]></title>
+    <link href="http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/"/>
+    <updated>2015-08-08T15:36:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks</id>
+    <content type="html"><![CDATA[<p>现在我们用 Objective-C 写代码时已经越来越多地用到了block，相比delegate的回调方式，block更直观易用。相信每个使用过block的人都遇到过block中使用self时需要weakself的情况，以下就是非常典型的一段代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">__weak</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="n">weakSelf</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="n">__strong</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">weakSelf</span><span class="p">)</span><span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">strongSelf</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于小白的我一般越到这种情况就是直接拷贝上面这个模板到需要的代码中去，而不知个中原委。但作为一个合格的程序员，是需要完完全全明白自己写的每一行代码是在做什么的，所以现在就简单说明一下这个 WeakSelf 和 StrongSelf 到底是什么。首先看下面这段代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">UIView</span> <span class="nl">animateWithDuration:</span><span class="mf">0.2</span> <span class="nl">animations:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">myView</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在ARC环境下的，每个block在创建时，编译器会对里面用到的所有对象自动增加一个reference count，然后当block执行完毕时，再释放这些reference。针对上面的代码，在animations block执行期间，self（假设这里的self是个view controller）的引用数会被加1，执行完后再次减1。但这种情况下为什么我们一般不会去weakify self呢？因为这个block的生命周期是明确可知的，在这个block执行期间当前的view controller一般是不会被销毁的，所以不存在什么风险。现在我们看下面这个例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">op</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">NSBlockOperation</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">]</span> <span class="n">autorelease</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">op</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doMoreThing</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这种情况下，我们并不知道这个execution block什么时候会执行完毕，所以很有可能发生的情况是，我在block还没执行完毕时就想销毁当前对象（比方说用户关闭了当前页面），这时就会因为block还对self有一个reference而没有立即销毁，这会引起很多问题，比方说你写在<code>- (void)dealloc {}</code>中的代码并不能马上得到执行。所以为了避免这种情况，我们会在block前加上<code>__weak __typeof(self)weakSelf = self;</code>的定义来使block对self获取一个弱引用（也就是refrence count不会加1）。</p>
+
+<p>那block中的StrongSelf又是做什么的呢？还是上面的例子，当你加了WeakSelf后，block中的self随时都会有被释放的可能，所以会出现一种情况，在调用doSomething的时候self还存在，在doMoreThing的时候self就变成nil了，所以为了避免这种情况发生，我们会重新strongify self。一般情况下，我们都建议这么做，这没什么风险，除非你不关心self在执行过程中变成nil，或者你确定它不会变成nil（比方说所以block都在main thread执行）。</p>
+
+<p>好了，简要的说明到此结束，想要详细了解的可以自行google，这类文章很多。前面代码中的WeakSelf、StrongSelf转换看起来很冗长，不利于阅读代码，下面介绍一个超好用的宏定义代码，它是这个开源库的一部分：<a href="https://github.com/jspahrsummers/libextobjc">libextobjc</a>。把它加入到项目中后，就可以用以下如此简洁的格式来完成转换啦：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;EXTScope.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">weakify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="err">@</span><span class="n">strongify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS UITableView 使用小贴士]]></title>

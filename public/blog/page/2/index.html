@@ -9,8 +9,8 @@
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="Mac加了SSD硬盘，重装了系统，所以需要重新安装Rails，找到一篇文章一步步照着来做，顺带记录下步骤分享给需要的人。本人Mac系统版本10.10.3。(原文链接) 安装Homebrew Homebrew能帮我们更便捷地从源代码编译安装其他软件，在Terminal里运行以下命令: 1
-ruby &hellip;">
+  <meta name="description" content="事件之始是本人的老Mac加装SSD硬盘后在新系统中的一次git commit，提交失败，原因是用vim写comment的时候保存不成功，在提示信息中有如下内容： 1
+Unable to open swap file for "{filename}", recovery impossible &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -56,6 +56,56 @@ ruby &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/04/15/vim-swap/">Vim无法打开Swap文件的错误</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-15T10:12:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/04/15/vim-swap/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2015/04/15/vim-swap/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>事件之始是本人的老Mac加装SSD硬盘后在新系统中的一次git commit，提交失败，原因是用vim写comment的时候保存不成功，在提示信息中有如下内容：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to open swap file for "{filename}", recovery impossible</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为我是在装完新系统后，把老硬盘里的配置文件都拷到新硬盘了，所以在我的.vimrc文件中确实是单独设置了swap的目录：<code>set directory=~/.vim/tmp</code>，于是首先怀疑是对应的目录不存在，如果是这种情况，可以使用<code>mkdir -p ~/.vim/tmp</code>这个命令去创建目录，但我的情况是这个目录已经存在。经过ls命令观察该目录内容，突然发现它的所有者是root用户的，恍然大悟，只要把它换成当前使用的用户名就可以了，于是用以下命令便可解决问题：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -Rv username .vim
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -815,53 +865,6 @@ ruby &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-08T18:47:00+08:00" pubdate data-updated="true">Sep 8<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/09/08/localize-storyboard/#disqus_thread"
-             data-disqus-identifier="http://sherlockyao.com/blog/2014/09/08/localize-storyboard/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>目前XCode已经提供了很好的国际化集成，使你很容易就可以让应用支持国际化，就连Storyboard里面的文字也可以自动提取出来让工程师配置对应的多国文字。今天要讲的是当一个Storyboard文件已经本地化了以后，又有了新的需求而进行了改动，这时该如何去更新多国语言文件。</p>
-
-<p>首先，如果你还不清楚如何国际化storyboard文件，那请点击<a href="http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014">这里</a>。</p>
-
-<p>当一个storyboard文件被localize了以后，在XCode右边的文件查看窗口就可以看到对应的语言列表，它们前面有一个checkbox，如果勾选的话就表示那种语言有对应的strings文件。因为XCode只支持一次性生成所有的storyboard的localize文件，所以当每次更新storyboard后想更新语言文件就变得非常麻烦。</p>
-
-<p><img src="/images/20140908/storyboard.png" title="" alt="File Inspector" /></p>
-
-<p>我这里提供一个实践中学到的比较好的办法，就是首先你先备份一份你想要更新的语言文件，然后在右边的文件窗口把对应的那个勾选项取消掉，接着再选上，这个时候XCode就会重新生成一份新的文件。我们要做的就是把老文件里已经写好的对应关系复制到新文件上，再把新的元素的文字补上就可以了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -894,6 +897,10 @@ ruby &hellip;">
   <section>
   <h1>Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/08/08/weakself-and-strongself-in-blocks/">使用Block时何时需要WeakSelf和StrongSelf?</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/06/28/uitableview-tips/">iOS UITableView 使用小贴士</a>
@@ -945,10 +952,6 @@ ruby &hellip;">
     
       <li class="post">
         <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/09/08/localize-storyboard/">如何更新Storyboard的多国语言strings文件</a>
       </li>
     
   </ul>
