@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>使用Block时何时需要WeakSelf和StrongSelf? - 姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="现在我们用 Objective-C 写代码时已经越来越多地用到了block，相比delegate的回调方式，block更直观易用。相信每个使用过block的人都遇到过block中使用self时需要weakself的情况，以下就是非常典型的一段代码： 1
+2
+3
+4
+5
+__weak &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+
+</head>
+
+<body   >
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
+
+<div class="header-right">
+  
+<ul class="main-navigation">
+ <div> 
+  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives">Archives</a></li></div>
+</ul>
+
+</div>
+</header>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">使用Block时何时需要WeakSelf和StrongSelf?</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-08-08T15:36:00+08:00" pubdate data-updated="true">Aug 8<span>th</span>, 2015</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>现在我们用 Objective-C 写代码时已经越来越多地用到了block，相比delegate的回调方式，block更直观易用。相信每个使用过block的人都遇到过block中使用self时需要weakself的情况，以下就是非常典型的一段代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">__weak</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="n">weakSelf</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="n">__strong</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">weakSelf</span><span class="p">)</span><span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">strongSelf</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于小白的我一般越到这种情况就是直接拷贝上面这个模板到需要的代码中去，而不知个中原委。但作为一个合格的程序员，是需要完完全全明白自己写的每一行代码是在做什么的，所以现在就简单说明一下这个 WeakSelf 和 StrongSelf 到底是什么。首先看下面这段代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">UIView</span> <span class="nl">animateWithDuration:</span><span class="mf">0.2</span> <span class="nl">animations:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">myView</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在ARC环境下的，每个block在创建时，编译器会对里面用到的所有对象自动增加一个reference count，然后当block执行完毕时，再释放这些reference。针对上面的代码，在animations block执行期间，self（假设这里的self是个view controller）的引用数会被加1，执行完后再次减1。但这种情况下为什么我们一般不会去weakify self呢？因为这个block的生命周期是明确可知的，在这个block执行期间当前的view controller一般是不会被销毁的，所以不存在什么风险。现在我们看下面这个例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">op</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">NSBlockOperation</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">]</span> <span class="n">autorelease</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">op</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doMoreThing</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这种情况下，我们并不知道这个execution block什么时候会执行完毕，所以很有可能发生的情况是，我在block还没执行完毕时就想销毁当前对象（比方说用户关闭了当前页面），这时就会因为block还对self有一个reference而没有立即销毁，这会引起很多问题，比方说你写在<code>- (void)dealloc {}</code>中的代码并不能马上得到执行。所以为了避免这种情况，我们会在block前加上<code>__weak __typeof(self)weakSelf = self;</code>的定义来使block对self获取一个弱引用（也就是refrence count不会加1）。</p>
+
+<p>那block中的StrongSelf又是做什么的呢？还是上面的例子，当你加了WeakSelf后，block中的self随时都会有被释放的可能，所以会出现一种情况，在调用doSomething的时候self还存在，在doMoreThing的时候self就变成nil了，所以为了避免这种情况发生，我们会重新strongify self。一般情况下，我们都建议这么做，这没什么风险，除非你不关心self在执行过程中变成nil，或者你确定它不会变成nil（比方说所以block都在main thread执行）。</p>
+
+<p>好了，简要的说明到此结束，想要详细了解的可以自行google，这类文章很多。前面代码中的WeakSelf、StrongSelf转换看起来很冗长，不利于阅读代码，下面介绍一个超好用的宏定义代码，它是这个开源库的一部分：<a href="https://github.com/jspahrsummers/libextobjc">libextobjc</a>。把它加入到项目中后，就可以用以下如此简洁的格式来完成转换啦：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;EXTScope.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">weakify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="err">@</span><span class="n">strongify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-08-08T15:36:00+08:00" pubdate data-updated="true">Aug 8<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/extscope/'>EXTScope</a>, <a class='category' href='/blog/categories/objective-c/'>Objective-C</a>, <a class='category' href='/blog/categories/block/'>block</a>, <a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/libextobjc/'>libextobjc</a>, <a class='category' href='/blog/categories/strongself/'>strongself</a>, <a class='category' href='/blog/categories/weakself/'>weakself</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/" data-via="" data-counturl="http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/06/28/uitableview-tips/" title="Previous Post: iOS UITableView 使用小贴士">&laquo; iOS UITableView 使用小贴士</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
+    
+  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
+</section>
+
+  <section>
+  <h1>Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/08/08/weakself-and-strongself-in-blocks/">使用Block时何时需要WeakSelf和StrongSelf?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/28/uitableview-tips/">iOS UITableView 使用小贴士</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/09/custom-uiactivity/">为 UIActivityViewController 添加自定义的 UIActivity 选项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/hugging-vs-resistance/">Content Hugging vs. Compression Resistance</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/17/no-blocking-ui-cell-update/">iOS的UI并发处理方案</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/16/customize-navigation-bar-style/">自定义Navigation Bar样式</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/15/vim-swap/">Vim无法打开Swap文件的错误</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/14/set-up-rails-on-mac/">Mac上安装Ruby on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/10/viper-practise-2/">VIPER实践（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/viper-practise-1/">VIPER实践（上）</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+    
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2015
+
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/';
+        var disqus_url = 'http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+</body>
+</html>
