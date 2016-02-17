@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: VIPER | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: viper | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/viper/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -22,100 +22,93 @@
 
 <p>Presenter在这个用例里面的主要作用就是接受View提交过来的“提问”请求，然后向Interactor获取“答案”，最后把结果更新到View上，以下是实现部分的代码片段：</p>
 
-<p>```objc</p>
+<pre><code class="objc">
+    @interface HumanComputerCommunicatePresenter : NSObject &lt;AIRobotInteractorDelegate&gt;
 
-<pre><code>@interface HumanComputerCommunicatePresenter : NSObject &lt;AIRobotInteractorDelegate&gt;
+    @property (nonatomic, weak) id&lt;ProgressViewInterface&gt; progressView;
+    @property (nonatomic, weak) id&lt;MessageBoardViewInterface&gt; messageBoard;
+    @property (nonatomic, strong) AIRobotInteractor *aiRobotInteractor;
 
-@property (nonatomic, weak) id&lt;ProgressViewInterface&gt; progressView;
-@property (nonatomic, weak) id&lt;MessageBoardViewInterface&gt; messageBoard;
-@property (nonatomic, strong) AIRobotInteractor *aiRobotInteractor;
+    - (void)wantSendMessage:(NSString *)message;
 
-- (void)wantSendMessage:(NSString *)message;
-
-@end
+    @end
 
 
-@implementation HumanComputerCommunicatePresenter
+    @implementation HumanComputerCommunicatePresenter
 
-- (void)wantSendMessage:(NSString *)message {
-  [self.progressView beginProgress];
-  [self.aiRobotInteractor askQuestion:message]
-}
+    - (void)wantSendMessage:(NSString *)message {
+      [self.progressView beginProgress];
+      [self.aiRobotInteractor askQuestion:message]
+    }
 
-- (void)aiRobotInteractor:(AIRobotInteractor *)aiRobotInteractor didResponseToQuestion:(NSString *)question response:(NSString *)response {
-  [self.progressView endProgress];
-  [self.messageBoard showMessage:response];
-}
+    - (void)aiRobotInteractor:(AIRobotInteractor *)aiRobotInteractor didResponseToQuestion:(NSString *)question response:(NSString *)response {
+      [self.progressView endProgress];
+      [self.messageBoard showMessage:response];
+    }
 
-@end
+    @end
 </code></pre>
-
-<p>```</p>
 
 <p>可以发现，Presenter就是承担了一个中间者的角色，它才是传统意义上MVC机构中的C(Controller)。其中有一点要注意的是，对应ViewInterface的reference，我们采用了weak的定义来防止Strong reference cycle ，在我自己的设计当中，我偏向于如下的reference关系：</p>
 
 <ul>
-<li>View &mdash;strong-> Presenter</li>
-<li>Presenter &mdash;strong-> Interactor</li>
-<li>Presenter &mdash;weak-> View</li>
+<li>View &ndash;strong-> Presenter</li>
+<li>Presenter &ndash;strong-> Interactor</li>
+<li>Presenter &ndash;weak-> View</li>
 </ul>
 
 
 <p>最后我们来看一下Routing，objc.io那片文章中的Routing做的很散，通过多个wireframe来实现，我个人的设计中偏向用一个大的wireframe结合Assembling Factory来实现Routing，废话不多说看代码比较直观，以下只是我个人目前的一种实现方案，仅供参考：</p>
 
-<p>```objc</p>
+<pre><code class="objc">    @implementation AssemblingFactory
 
-<pre><code>@implementation AssemblingFactory
+    + (UIViewController *)assembleChatroomView {
+      ChatroomViewController *viewController = [[UIStoryboard genericStoryboard] instantiateViewControllerWithIdentifier:ChatroomViewIdentifier];
+      HumanComputerCommunicatePresenter *presenter = [HumanComputerCommunicatePresenter new];
+      AIRobotInteractor *interactor = [AIRobotInteractor new];
 
-+ (UIViewController *)assembleChatroomView {
-  ChatroomViewController *viewController = [[UIStoryboard genericStoryboard] instantiateViewControllerWithIdentifier:ChatroomViewIdentifier];
-  HumanComputerCommunicatePresenter *presenter = [HumanComputerCommunicatePresenter new];
-  AIRobotInteractor *interactor = [AIRobotInteractor new];
+      viewController.presenter = presenter;
+      presenter.progressView = viewController;
+      presneter.messageBoard = viewController
+      presenter.interactor = interactor;
+      interactor.delegate = presenter;
 
-  viewController.presenter = presenter;
-  presenter.progressView = viewController;
-  presneter.messageBoard = viewController
-  presenter.interactor = interactor;
-  interactor.delegate = presenter;
+      return viewController;
+    }
 
-  return viewController;
-}
-
-@end
+    @end
 
 
-@implementation Wireframe
+    @implementation Wireframe
 
-+ (void)moveToNextPageOfViewController:(UIViewController *)viewController messenger:(PageMessenger *)messenger {
-  SEL selector = [self selectorOfClass:[viewController class] messengerName:[messenger name]];
-  IMP imp = [[self class] methodForSelector:selector];
-  void (*func)(id, SEL, UIViewController*, NSDictionary*) = (void *)imp;
-  func([self class], selector, viewController, [messenger params]);
-}
+    + (void)moveToNextPageOfViewController:(UIViewController *)viewController messenger:(PageMessenger *)messenger {
+      SEL selector = [self selectorOfClass:[viewController class] messengerName:[messenger name]];
+      IMP imp = [[self class] methodForSelector:selector];
+      void (*func)(id, SEL, UIViewController*, NSDictionary*) = (void *)imp;
+      func([self class], selector, viewController, [messenger params]);
+    }
 
-+ (SEL)selectorOfClass:(Class)class messengerName:(NSString *)messengerName {
-  static NSDictionary *selectorMap = nil;
-  if (!selectorMap) {
+    + (SEL)selectorOfClass:(Class)class messengerName:(NSString *)messengerName {
+      static NSDictionary *selectorMap = nil;
+      if (!selectorMap) {
 
-    selectorMap = @{
-                    @"SplashViewControllerDefault" : [NSValue valueWithPointer:@selector(moveToChatroomViewController:params:)]
-                    // add more nav configuration here...
-                    };
-  }
-  NSValue *value = [selectorMap valueForKey:[[class description] conj:messengerName]];
-  return value ? [value pointerValue] : @selector(emptyMove:params:);
-}
+        selectorMap = @{
+                        @"SplashViewControllerDefault" : [NSValue valueWithPointer:@selector(moveToChatroomViewController:params:)]
+                        // add more nav configuration here...
+                        };
+      }
+      NSValue *value = [selectorMap valueForKey:[[class description] conj:messengerName]];
+      return value ? [value pointerValue] : @selector(emptyMove:params:);
+    }
 
-+ (void)moveToChatroomViewController:(UIViewController *)viewController params:(NSDictionary *)params {
-  UIViewController *viewController = [AssemblingFactory assembleChatroomView];
-  [(BaseViewController *)viewController setParams:params]; // I defined a base view controller to allow pass params
-  [viewController.navigationController pushViewController:viewController animated:YES];
-}
+    + (void)moveToChatroomViewController:(UIViewController *)viewController params:(NSDictionary *)params {
+      UIViewController *viewController = [AssemblingFactory assembleChatroomView];
+      [(BaseViewController *)viewController setParams:params]; // I defined a base view controller to allow pass params
+      [viewController.navigationController pushViewController:viewController animated:YES];
+    }
 
-@end
+    @end
 </code></pre>
-
-<p>```</p>
 
 <p>以上大致就是我个人目前实践VIPER的一些心得，肯定非常不成熟，有很多地方可以改进，只想抛砖引玉让大家广思集益共同改进我们代码的架构方案，从而最终帮助提高开发效率。</p>
 ]]></content>
@@ -130,50 +123,42 @@
 
 <p>这个假想的App功能非常简单，类似一个简化版的Siri，用户在界面上输入一些文本后提交，应用就会返回一些回复的信息给你。首先在开始前我想说明一点，VIPER架构的核心思想就是把传统庞大的应用结构解构成View, interactor, Presenter, Entity, Routing五个部分，既然是做了解耦合，那各个部分直接应该做到相应的灵活和可重用，这点非常重要，我们在设计View，Presenter和Interactor时要时刻记住这一点。在objc.io原文章的示例代码中，这点做的就不够好，而在个人的实践中就更容易陷在这里，你会发现你给一个特定的View写了一个Presenter然后这个Presenter用到了一个特定的Interactor，这三个文件所做的就是应用中的一个特定的业务逻辑，所以也没办法被其他地方重用，其结果就是你只是简单的把原来属于一个ViewController的代码分散放到三个类中了，本质上却没有解耦合。请大家在看下面内容的时候时刻牢记这一点。同时示例我只提供了设计思路，并不提供实现的代码，因为示例的目的就是为了帮助理解VIPER的设计思路。</p>
 
-<p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
+<p>首先我们从View入手，界面上其实很简单：用户输入文本 -> 提交 -> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
 
-<p>```objc</p>
+<pre><code class="objc">    // 用于显示和隐藏等待框
+    @protocol ProgressViewInterface &lt;NSObject&gt;
 
-<pre><code>// 用于显示和隐藏等待框
-@protocol ProgressViewInterface &lt;NSObject&gt;
+    - (void)beginProgress;
+    - (void)endProgress;
 
-- (void)beginProgress;
-- (void)endProgress;
+    @end
 
-@end
+    // 用于显示回应文本
+    @protocol MessageBoardViewInterface &lt;NSObject&gt;
 
-// 用于显示回应文本
-@protocol MessageBoardViewInterface &lt;NSObject&gt;
+    - (void)showMessage:(NSString *)message;
 
-- (void)showMessage:(NSString *)message;
-
-@end
+    @end
 </code></pre>
-
-<p>```</p>
 
 <p>Prsenter是“VIP”结构中的中间件，起着承上启下的作用，所以我们放到下一篇文章里写，接下来我们来设计Interactor。Interactor在这里就只有一个功能，就是一个智能AI的角色。一般来说，interactor是一部分具体业务逻辑的实现者，虽然我们提倡对接口编程，但是这些实现一般一个应用就只会有一份，同时像Kiwi这种测试框架已经提供了良好的mock和stub支持，所以我们就不再对interactor设计接口，而是直接实现，其.h文件大致如下：</p>
 
-<p>```objc</p>
+<pre><code class="objc">    @interface AIRobotInteractor : NSObject
 
-<pre><code>@interface AIRobotInteractor : NSObject
+    @property (nonatomic, weak) id&lt;CAIRobotInteractorDelegate&gt; delegate;
 
-@property (nonatomic, weak) id&lt;CAIRobotInteractorDelegate&gt; delegate;
+    - (void)askQuestion:(NSString *)question;
 
-- (void)askQuestion:(NSString *)question;
-
-@end
+    @end
 
 
-@protocol AIRobotInteractorDelegate &lt;NSObject&gt;
+    @protocol AIRobotInteractorDelegate &lt;NSObject&gt;
 
-@optional
-- (void)aiRobotInteractor:(AIRobotInteractor *)aiRobotInteractor didResponseToQuestion:(NSString *)question response:(NSString *)response;
+    @optional
+    - (void)aiRobotInteractor:(AIRobotInteractor *)aiRobotInteractor didResponseToQuestion:(NSString *)question response:(NSString *)response;
 
-@end
+    @end
 </code></pre>
-
-<p>```</p>
 
 <p>注意，这里我们使用了Delegate作为和presenter的交互方式，但不是一定要用，具体可以通过实际需求来设计交互形式。同时在类的命名上我故意使用了一些广泛的名字，目的就是为了突出解耦这个概念，要知道这些view interface和interactor可以在任何需要的地方使用而不是只局限在当前这个view controller。</p>
 

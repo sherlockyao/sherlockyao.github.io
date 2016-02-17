@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: CocoaPod | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: cocoapod | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/cocoapod/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -29,11 +29,10 @@
 </ul>
 
 
-<p>```bash
-  platform :ios, &lsquo;6.0&rsquo;</p>
+<pre><code class="bash">  platform :ios, '6.0'
 
-<p>  pod &ldquo;SYDemoPod&rdquo;, :path => &ldquo;../&rdquo;
-```</p>
+  pod "SYDemoPod", :path =&gt; "../"
+</code></pre>
 
 <p>  现在我们就可以创建一个Example项目到那个文件夹里面，作为给其他用户演示如何使用我的这个库的示例项目。用XCode新建完项目，然后命令行<code>pod install</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>安装依赖，接着打开.workspace文件后你就可以coding你的示例代码了。</p>
 
@@ -44,18 +43,16 @@
 </ul>
 
 
-<p><code>bash
-  # 这里的url就是对应你自己的pod的github链接
+<pre><code class="bash">  # 这里的url就是对应你自己的pod的github链接
   pod 'SYDemoPod', :git =&gt; 'https://example.com/URL/to/repo/SYDemoPod.git'
-</code></p>
+</code></pre>
 
 <p>  配置好后运行<code>pod install</code>或<code>pod update</code>，然后看看是否能正确添加依赖，如果没有任何问题，那就可以发布啦，依次使用以下命令即可：</p>
 
-<p>```bash
-  rake release</p>
+<pre><code class="bash">  rake release
 
-<p>  pod trunk push SYDemoPod.podspec
-```</p>
+  pod trunk push SYDemoPod.podspec
+</code></pre>
 
 <p>另：如果执行<code>pod trunk push</code>命令时提示你要创建一个session，那就先<code>pod trunk register</code>先注册一下就可以了</p>
 <div class="footnotes">

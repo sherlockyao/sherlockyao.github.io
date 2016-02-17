@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: NavigationBar | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: navigationbar | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/navigationbar/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -24,11 +24,9 @@
 
 <p>这个应该是最常见的需求了，同时也只需一行代码就可以实现：</p>
 
-<p>```objc</p>
-
-<p>[[UINavigationBar appearance] setBarTintColor:[UIColor yellowColor]];</p>
-
-<p>```</p>
+<pre><code class="objc">
+[[UINavigationBar appearance] setBarTintColor:[UIColor yellowColor]];
+</code></pre>
 
 <h3>> 更改导航栏标题的样式</h3>
 
@@ -42,49 +40,41 @@
 </ul>
 
 
-<p>```objc</p>
-
-<p>NSShadow *shadow = [NSShadow new];
+<pre><code class="objc">
+NSShadow *shadow = [NSShadow new];
 shadow.shadowColor = [UIColor grayColor];
 shadow.shadowOffset = CGSizeMake(0, 1);
 [[UINavigationBar appearance] setTitleTextAttributes: @{
   NSForegroundColorAttributeName : [UIColor whiteColor],
   NSShadowAttributeName : shadow,
-  NSFontAttributeName : [UIFont fontWithName:@&ldquo;HelveticaNeue&rdquo; size:21.0]
-}];</p>
-
-<p>```</p>
+  NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue" size:21.0]
+}];
+</code></pre>
 
 <p>有些设计会要求使用logo或其他更复杂的内容代替文字显示在标题位置，这个时候我们可以通过设置navigationItem的titleView来实现这些需求，这里以简单地替换成图片为例子：</p>
 
-<p>```objc</p>
-
-<p>// 这里的viewController就是对应的要替换标题的那个view controller，而不是navigation controller本身
-viewController.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&ldquo;title&rdquo;]];</p>
-
-<p>```</p>
+<pre><code class="objc">
+// 这里的viewController就是对应的要替换标题的那个view controller，而不是navigation controller本身
+viewController.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"title"]];
+</code></pre>
 
 <h3>> 修改导航栏上按钮的颜色</h3>
 
 <p>我们可以通过设置tintColor来实现，要注意的是，这个颜色会同时影响到所有按钮上的文字和图片：</p>
 
-<p>```objc</p>
-
-<p>[[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];</p>
-
-<p>```</p>
+<pre><code class="objc">
+[[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];
+</code></pre>
 
 <h3>> 添加更多的导航栏按钮</h3>
 
 <p>这种情况下，我们可以通过设置leftBarButtonItems和rightBarButtonItems来实现，直接给出一段实例代码，大家一看就懂：</p>
 
-<p>```objc</p>
-
-<p>UIBarButtonItem <em>markItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@&ldquo;mark&rdquo;] selectedImage:nil size:CGSizeMake(40, 40) target:self action:@selector(markButtonClicked:)];
-UIBarButtonItem </em>starItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@&ldquo;star&rdquo;] selectedImage:[UIImage imageNamed:@&ldquo;star_selected&rdquo;] size:CGSizeMake(30, 40) target:self action:@selector(starButtonClicked:)];
-self.navigationItem.rightBarButtonItems = @[starItem, markItem];</p>
-
-<p>```</p>
+<pre><code class="objc">
+UIBarButtonItem *markItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@"mark"] selectedImage:nil size:CGSizeMake(40, 40) target:self action:@selector(markButtonClicked:)];
+UIBarButtonItem *starItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@"star"] selectedImage:[UIImage imageNamed:@"star_selected"] size:CGSizeMake(30, 40) target:self action:@selector(starButtonClicked:)];
+self.navigationItem.rightBarButtonItems = @[starItem, markItem];
+</code></pre>
 ]]></content>
   </entry>
   

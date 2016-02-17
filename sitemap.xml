@@ -1,105 +1,345 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/05/23/hello-blogging/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/09/01/uiscrollview-with-autolayout/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/09/08/localize-storyboard/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/09/09/viper-practise-1/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/09/10/viper-practise-2/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2014/11/10/deploy-node-project/</loc>
-        <lastmod>2015-01-24T11:58:01+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/01/06/blur-effect-view/</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac/</loc>
-        <lastmod>2015-04-14T19:58:49+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/04/15/vim-swap/</loc>
-        <lastmod>2015-04-15T10:36:43+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style/</loc>
-        <lastmod>2015-04-16T17:07:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update/</loc>
-        <lastmod>2015-04-17T16:19:30+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/</loc>
-        <lastmod>2015-04-18T17:27:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>
-            http://sherlockyao.com/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/
-        </loc>
-        <lastmod>2015-06-08T14:49:08+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/06/09/custom-uiactivity/</loc>
-        <lastmod>2015-06-09T16:38:46+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/06/28/uitableview-tips/</loc>
-        <lastmod>2015-06-28T16:40:08+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/</loc>
-        <lastmod>2015-08-08T16:25:15+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/2015/11/10/head-first-reactive-programming-1/</loc>
-        <lastmod>2015-11-11T10:38:59+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/archives/</loc>
-        <lastmod>2015-11-11T10:38:59+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/blog/archives/</loc>
-        <lastmod>2015-11-11T10:38:59+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/</loc>
-        <lastmod>2015-11-11T10:38:59+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/robots.txt</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://sherlockyao.com/search.html</loc>
-        <lastmod>2015-01-24T10:42:54+08:00</lastmod>
-    </url>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/</loc>
+<lastmod>2016-02-16T16:00:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/11/10/head-first-reactive-programming-1/</loc>
+<lastmod>2015-11-10T14:01:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/</loc>
+<lastmod>2015-08-08T15:36:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/06/28/uitableview-tips/</loc>
+<lastmod>2015-06-28T15:27:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/06/09/custom-uiactivity/</loc>
+<lastmod>2015-06-09T15:13:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/</loc>
+<lastmod>2015-06-08T14:14:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/</loc>
+<lastmod>2015-04-18T16:32:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update/</loc>
+<lastmod>2015-04-17T14:36:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style/</loc>
+<lastmod>2015-04-16T15:51:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/04/15/vim-swap/</loc>
+<lastmod>2015-04-15T10:12:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/04/14/set-up-rails-on-mac/</loc>
+<lastmod>2015-04-14T19:48:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2015/01/06/blur-effect-view/</loc>
+<lastmod>2015-01-06T13:37:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/11/10/deploy-node-project/</loc>
+<lastmod>2014-11-10T10:33:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/09/11/core-data-migration-with-magicalrecord/</loc>
+<lastmod>2014-09-11T16:22:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/09/10/viper-practise-2/</loc>
+<lastmod>2014-09-10T16:01:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/09/09/viper-practise-1/</loc>
+<lastmod>2014-09-09T14:35:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/09/08/localize-storyboard/</loc>
+<lastmod>2014-09-08T18:47:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/09/01/uiscrollview-with-autolayout/</loc>
+<lastmod>2014-09-01T13:14:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/07/08/first-sight-of-docker/</loc>
+<lastmod>2014-07-08T17:47:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/05/26/making-a-cocoapod/</loc>
+<lastmod>2014-05-26T13:59:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/2014/05/23/hello-blogging/</loc>
+<lastmod>2014-05-23T15:30:00+08:00</lastmod>
+</url>
+<url>
+<loc>http://sherlockyao.com/archives/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/archives/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/search.html</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/cocoapod/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/ios/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/docker/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/storyboard/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/localize/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/objective-c/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/viper/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/architecture/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/magicalrecord/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/core-data/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/migration/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/node/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/node-dot-js/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/nginx/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/upstart/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/mao-bo-li/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/blur/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/vibrancy/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/mo-hu/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/uiblureffect/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/uivisualeffectview/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/rails/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/ruby/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/homebrew/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/rbenv/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/bundle/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/ror/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/vim/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/swap/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/git/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/chown/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/navigation/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/dao-hang-tiao/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/navigationbar/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/navigationitem/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/appearance/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/concurrent/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/ui/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/nsoperationqueue/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/gcd/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/tableview/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/cell/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/bing-fa/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/asynchronize/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/content-hugging/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/compression-resistance/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/intrinsic/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/ya-suo-zu-li/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/nei-rong-xi-fu/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/autolayout/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/tip/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/lightweight-migration/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/to-one/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/to-many/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/qian-yi-,%255B%253F%255D-dui-duo-,%255B%253F%255D-dui-%255B%253F%255D/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/uiactivityviewcontroller/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/uiactivity/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/share/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/custom/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/fen-xiang/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/zi-ding-yi/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/uitableview/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/tips/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/self-size/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/separator/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/header/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/tie-shi/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/zi-gua-ying/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/fen-ge-xian/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/dong-tai-gao-du/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/block/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/weakself/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/strongself/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/libextobjc/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/extscope/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/swift/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/reactive/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/reactivex/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/rxswift/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/xiang-ying-shi-bian-cheng/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/han-shu-shi-bian-cheng/</loc>
+</url>
+<url>
+<loc>http://sherlockyao.com/blog/categories/mvvm/</loc>
+</url>
 </urlset>

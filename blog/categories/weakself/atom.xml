@@ -4,7 +4,7 @@
   <title><![CDATA[Category: weakself | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/weakself/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -20,46 +20,31 @@
     <id>http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks</id>
     <content type="html"><![CDATA[<p>现在我们用 Objective-C 写代码时已经越来越多地用到了block，相比delegate的回调方式，block更直观易用。相信每个使用过block的人都遇到过block中使用self时需要weakself的情况，以下就是非常典型的一段代码：</p>
 
-<p>```objc</p>
-
-<p><strong>weak </strong>typeof(self)weakSelf = self;
-[self.context performBlock:^{</p>
-
-<pre><code>__strong __typeof(weakSelf)strongSelf = weakSelf;
-[strongSelf doSomething];
+<pre><code class="objc">
+__weak __typeof(self)weakSelf = self;
+[self.context performBlock:^{
+    __strong __typeof(weakSelf)strongSelf = weakSelf;
+    [strongSelf doSomething];
+}];
 </code></pre>
-
-<p>}];</p>
-
-<p>```</p>
 
 <p>对于小白的我一般越到这种情况就是直接拷贝上面这个模板到需要的代码中去，而不知个中原委。但作为一个合格的程序员，是需要完完全全明白自己写的每一行代码是在做什么的，所以现在就简单说明一下这个 WeakSelf 和 StrongSelf 到底是什么。首先看下面这段代码：</p>
 
-<p>```objc</p>
-
-<p>[UIView animateWithDuration:0.2 animations:^{</p>
-
-<pre><code>self.myView.alpha = 1.0; 
+<pre><code class="objc">
+[UIView animateWithDuration:0.2 animations:^{
+    self.myView.alpha = 1.0; 
+}];
 </code></pre>
-
-<p>}];</p>
-
-<p>```</p>
 
 <p>在ARC环境下的，每个block在创建时，编译器会对里面用到的所有对象自动增加一个reference count，然后当block执行完毕时，再释放这些reference。针对上面的代码，在animations block执行期间，self（假设这里的self是个view controller）的引用数会被加1，执行完后再次减1。但这种情况下为什么我们一般不会去weakify self呢？因为这个block的生命周期是明确可知的，在这个block执行期间当前的view controller一般是不会被销毁的，所以不存在什么风险。现在我们看下面这个例子：</p>
 
-<p>```objc</p>
-
-<p>NSBlockOperation *op = [[[NSBlockOperation alloc] init] autorelease];
-[op addExecutionBlock:^ {</p>
-
-<pre><code>[self doSomething];
-[self doMoreThing];
+<pre><code class="objc">
+NSBlockOperation *op = [[[NSBlockOperation alloc] init] autorelease];
+[op addExecutionBlock:^ {
+    [self doSomething];
+    [self doMoreThing];
+}];
 </code></pre>
-
-<p>}];</p>
-
-<p>```</p>
 
 <p>在这种情况下，我们并不知道这个execution block什么时候会执行完毕，所以很有可能发生的情况是，我在block还没执行完毕时就想销毁当前对象（比方说用户关闭了当前页面），这时就会因为block还对self有一个reference而没有立即销毁，这会引起很多问题，比方说你写在<code>- (void)dealloc {}</code>中的代码并不能马上得到执行。所以为了避免这种情况，我们会在block前加上<code>__weak __typeof(self)weakSelf = self;</code>的定义来使block对self获取一个弱引用（也就是refrence count不会加1）。</p>
 
@@ -67,20 +52,15 @@
 
 <p>好了，简要的说明到此结束，想要详细了解的可以自行google，这类文章很多。前面代码中的WeakSelf、StrongSelf转换看起来很冗长，不利于阅读代码，下面介绍一个超好用的宏定义代码，它是这个开源库的一部分：<a href="https://github.com/jspahrsummers/libextobjc">libextobjc</a>。把它加入到项目中后，就可以用以下如此简洁的格式来完成转换啦：</p>
 
-<p>```objc</p>
+<pre><code class="objc">
+#import "EXTScope.h"
 
-<h1>import &ldquo;EXTScope.h&rdquo;</h1>
-
-<p>@weakify(self)
-[self.context performBlock:^{</p>
-
-<pre><code>@strongify(self)
-[self doSomething];
+@weakify(self)
+[self.context performBlock:^{
+    @strongify(self)
+    [self doSomething];
+}];
 </code></pre>
-
-<p>}];</p>
-
-<p>```</p>
 ]]></content>
   </entry>
   

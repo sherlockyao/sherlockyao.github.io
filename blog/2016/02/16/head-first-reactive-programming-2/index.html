@@ -1,0 +1,628 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>响应式编程入门（下） - 姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="书接上文，前面我们简单地介绍了响应式编程（Reactive Programming）的一些基本思想，接下来我会通过实际例子，一步步演示如何将RP应用到实际的开发中去。因为RxSwift本身已经提供了非常好的Sample代码，所以我打算这里就通过复刻其中的GitHubSignup项目， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+
+</head>
+
+<body   >
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
+
+<div class="header-right">
+  
+<ul class="main-navigation">
+ <div> 
+  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives">Archives</a></li></div>
+</ul>
+
+</div>
+</header>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">响应式编程入门（下）</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-16T16:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>书接上文，前面我们简单地介绍了响应式编程（Reactive Programming）的一些基本思想，接下来我会通过实际例子，一步步演示如何将RP应用到实际的开发中去。因为<a href="https://github.com/ReactiveX/RxSwift">RxSwift</a>本身已经提供了非常好的Sample代码，所以我打算这里就通过复刻其中的GitHubSignup项目，来作为本次演示的主题。首先让我们来看看需要达到的效果：</p>
+
+<p><img src="/images/20160216/signup.png" title="" alt="File Inspector" /></p>
+
+<p>以下是我们将实现的主要功能（我这里省掉了提交表单的逻辑，其实现方法同其他的大同小异）：</p>
+
+<ul>
+<li>当用户在输入用户名时，实时去验证用户名是否可用，同时显示对应的验证结果</li>
+<li>当用户在输入密码时，要验证是否大于3位，同时显示对应的验证结果</li>
+<li>当用户重复密码时，要验证是否和第一次输入一致，同时显示对应的验证结果</li>
+<li>当且仅当三个输入区域都验证通过时，提交按钮才可被点击，否则将禁用</li>
+</ul>
+
+
+<p>因为密码的验证不需要网络请求，完全在本地完成，所以我们先从这个比较简单的入手。验证过程是在每次用户键入密码时触发的，所以我们可以把它看作是一个输入流，用图形表示就是类似这样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--t----t---t-----t------&gt;
+</span><span class='line'>
+</span><span class='line'>t表示的就是一次键盘输入事件</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不过我们不光需要知道输入事件，还需要知道输入事件产生时输入框内的文本内容，我们希望有一个这样的流：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--t----t---t-----t------&gt;
+</span><span class='line'>  v    v   v     v
+</span><span class='line'>-(1)-(12)-(123)-(1234)--&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>大家马上会想到我们可以通过一个简单的map来搞定，不过RxSwift是非常贴心的，这么常用的功能它们已经提供了封装，我们可以直接拿来用：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">class</span> <span class="nl">ViewController</span><span class="p">:</span> <span class="bp">UIViewController</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">@</span><span class="kt">IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nl">passwordTextField</span><span class="p">:</span> <span class="bp">UITextField</span><span class="o">!</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">password</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kr">override</span> <span class="k">func</span> <span class="n">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nb">super</span><span class="p">.</span><span class="n">viewDidLoad</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">passwordTextField</span><span class="p">.</span><span class="n">rx_text</span> <span class="o">&lt;-&gt;</span> <span class="n">password</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">infix</span> <span class="kr">operator</span> <span class="o">&lt;-&gt;</span> <span class="p">{</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">func</span> <span class="o">&lt;-&gt;</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="nl">property</span><span class="p">:</span> <span class="n">ControlProperty</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="nl">variable</span><span class="p">:</span> <span class="n">Variable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Disposable</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">bindToUIDisposable</span> <span class="o">=</span> <span class="n">variable</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">bindTo</span><span class="p">(</span><span class="n">property</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">bindToVariable</span> <span class="o">=</span> <span class="n">property</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="nl">onNext</span><span class="p">:</span> <span class="p">{</span> <span class="n">n</span> <span class="k">in</span>
+</span><span class='line'>            <span class="n">variable</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">n</span>
+</span><span class='line'>            <span class="p">},</span> <span class="nl">onCompleted</span><span class="p">:</span>  <span class="p">{</span>
+</span><span class='line'>                <span class="n">bindToUIDisposable</span><span class="p">.</span><span class="n">dispose</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">StableCompositeDisposable</span><span class="p">.</span><span class="n">create</span><span class="p">(</span><span class="n">bindToUIDisposable</span><span class="p">,</span> <span class="n">bindToVariable</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的代码中，我们申明了一个password的Variable，为的是把UI中的值绑定到它上面，方便后面的使用，所使用的<code>&lt;-&gt;</code>绑定操作符是自定义的，可以在底部的方法中看到。可以看到，到目前为止我们其实就用了一行代码生成了需要的数据流，接下来就是验证数据，转化成我们真正需要的结果流了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="o">--</span><span class="n">t</span><span class="o">----</span><span class="n">t</span><span class="o">---</span><span class="n">t</span><span class="o">-----</span><span class="n">t</span><span class="o">------&gt;</span>
+</span><span class='line'>  <span class="n">v</span>    <span class="n">v</span>   <span class="n">v</span>     <span class="n">v</span>
+</span><span class='line'><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span><span class="o">--&gt;</span>
+</span><span class='line'>  <span class="n">v</span>    <span class="n">v</span>   <span class="n">v</span>     <span class="n">v</span>
+</span><span class='line'><span class="o">--</span><span class="n">F</span><span class="o">----</span><span class="n">F</span><span class="o">---</span><span class="n">F</span><span class="o">-----</span><span class="n">T</span><span class="o">------&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实现的代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">passwordValidation</span> <span class="o">=</span> <span class="n">password</span><span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">numberOfCharacters</span> <span class="o">=</span> <span class="n">password</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">numberOfCharacters</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">numberOfCharacters</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Password must be at least 4 characters&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Password acceptable&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们的验证逻辑很简单，看一下输入字符的长度，如果大于3位则通过。最后的<code>shareReplay</code>是RxSwift提供的一个流操作函数，作用是为了保证在观察者订阅这个流的时候始终都能回播最后一个（数字1表示回播的数量）流中的值，这样能使界面上正确显示验证的状态。现在我们有了需要的流，接下来就是创建一个观察者来订阅这个流，从而能把结果显示在界面上反馈给用户，直接看代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">func</span> <span class="nf">bindValidationResultToUI</span><span class="p">(</span><span class="nl">source</span><span class="p">:</span> <span class="n">Observable</span><span class="o">&lt;</span><span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="nl">validationErrorLabel</span><span class="p">:</span> <span class="bp">UILabel</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">source</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">subscribeNext</span> <span class="p">{</span> <span class="n">v</span> <span class="k">in</span>
+</span><span class='line'>            <span class="k">let</span> <span class="nl">validationColor</span><span class="p">:</span> <span class="bp">UIColor</span>
+</span><span class='line'>  
+</span><span class='line'>            <span class="k">if</span> <span class="k">let</span> <span class="n">valid</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">valid</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">validationColor</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">?</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">greenColor</span><span class="p">()</span> <span class="o">:</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">redColor</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">validationColor</span> <span class="o">=</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">grayColor</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>  
+</span><span class='line'>            <span class="n">validationErrorLabel</span><span class="p">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="n">validationColor</span>
+</span><span class='line'>            <span class="n">validationErrorLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">message</span> <span class="o">??</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">addDisposableTo</span><span class="p">(</span><span class="n">disposeBag</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">override</span> <span class="k">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bindValidationResultToUI</span><span class="p">(</span>
+</span><span class='line'>            <span class="n">passwordValidation</span><span class="p">,</span>
+</span><span class='line'>            <span class="nl">validationErrorLabel</span><span class="p">:</span> <span class="nb">self</span><span class="p">.</span><span class="n">passwordValidationLabel</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们定义了一个帮助方法，它会订阅给定的验证流，并把结果显示在指定的Label上，怎么样是不是感觉非常简单，剩下要做的就是把刚才我们创建的密码验证流绑定到需要的标签上即可。依样画葫芦，接下来我们来创建重复密码的验证：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">repeatPasswordValidation</span> <span class="o">=</span> <span class="n">combineLatest</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">repeatedPassword</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">repeatedPassword</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">repeatedPassword</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">repeatedPassword</span> <span class="o">==</span> <span class="n">password</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Password repeated&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Password different&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里我只贴出了核心的创建流的代码部分，其余的与验证密码都是雷同的。从上面的代码中可以看到，我们使用了combineLatest的函数来合并两个流，它的作用如下图：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="nl">X</span><span class="p">:</span> <span class="o">--</span><span class="mi">1</span><span class="o">----</span><span class="mi">2</span><span class="o">------------</span><span class="mi">3</span><span class="o">--</span><span class="mi">4</span><span class="o">--|-&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">Y</span><span class="p">:</span> <span class="o">----</span><span class="n">A</span><span class="o">-----</span><span class="n">B</span><span class="o">---</span><span class="n">C</span><span class="o">--</span><span class="n">D</span><span class="o">--------|-&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">combineLatest</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="o">----</span><span class="mi">1</span><span class="n">A</span><span class="o">-</span><span class="mi">2</span><span class="n">A</span><span class="o">-</span><span class="mi">2</span><span class="n">B</span><span class="o">--</span><span class="mi">2</span><span class="n">C</span><span class="o">-</span><span class="mi">2</span><span class="n">D</span><span class="o">-</span><span class="mi">3</span><span class="n">D</span><span class="o">-</span><span class="mi">4</span><span class="n">D</span><span class="o">-|-&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可见，它正好试用我们验证密码的场景，接下来就是简单的验证逻辑，如此我们便实现了重复密码的验证过程。现在让我们来看一下稍微复杂一点的逻辑，验证用户名：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">usernameValidation</span> <span class="o">=</span> <span class="n">username</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="p">[</span><span class="kr">unowned</span> <span class="nb">self</span><span class="p">]</span> <span class="n">username</span> <span class="o">-&gt;</span> <span class="n">Observable</span><span class="o">&lt;</span><span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span><span class="o">&gt;</span> <span class="k">in</span>
+</span><span class='line'>        <span class="k">if</span> <span class="n">username</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">just</span><span class="p">((</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="n">username</span><span class="p">.</span><span class="n">rangeOfCharacterFromSet</span><span class="p">(</span><span class="bp">NSCharacterSet</span><span class="p">.</span><span class="n">alphanumericCharacterSet</span><span class="p">().</span><span class="n">invertedSet</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">just</span><span class="p">((</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Username can only contain numbers or digits&quot;</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">let</span> <span class="n">loadingValue</span> <span class="o">=</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="nb">nil</span> <span class="kt">as</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="s">&quot;Checking availabilty ...&quot;</span> <span class="kt">as</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">API</span><span class="p">.</span><span class="n">usernameAvailable</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="n">available</span> <span class="k">in</span>
+</span><span class='line'>                <span class="k">if</span> <span class="n">available</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Username available&quot;</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Username already taken&quot;</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">startWith</span><span class="p">(</span><span class="n">loadingValue</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">switchLatest</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们来具体分析一下整个过程，首先用户名的验证分为两个部分，一个本地合法性验证，另一个是远程的可用性验证，因为服务器验证涉及到异步，所以其验证结果本身就是一个流（拥有初始状态，结果状态）。然后我们来想象一下，当用户在输入用户名的时候，每当用户键入一个值，我们都需要去验证，但因为服务器验证是异步的，所以当用户键入下一字母的时候，前面的验证结果其实是没有用了，那我们应该怎么处理呢？switchLatest函数是我们的救星，下面是其官方文档的示意图：</p>
+
+<p><img src="/images/20160216/switchlatest.png" title="" alt="File Inspector" /></p>
+
+<p>简言之，switchLatest所操作的流其原本的每个值都是一个单独的流，经过处理后，它变成了一个单一的流，其中的每个值都是原本流当中最新流中的最新值。这就完美地解决了我们的问题，每当新的验证触发后，前一个验证流的值虽然还会产生，但是我们已经不去关心它了，从而不会对我们的结果产生影响。最后让我们来处理提交按钮的禁用逻辑，当我们用流的思路去考虑问题时，将发现这个需求简直太简单了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">signupEnabled</span> <span class="o">=</span> <span class="n">combineLatest</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">usernameValidation</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">passwordValidation</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">repeatPasswordValidation</span>
+</span><span class='line'>    <span class="p">)</span> <span class="p">{</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">repeatPassword</span> <span class="k">in</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="n">username</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">repeatPassword</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">signupEnabled</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">subscribeNext</span> <span class="p">{</span> <span class="p">[</span><span class="kr">unowned</span> <span class="nb">self</span><span class="p">]</span> <span class="n">valid</span>  <span class="k">in</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">submitButton</span><span class="p">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">valid</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">submitButton</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">?</span> <span class="mf">1.0</span> <span class="o">:</span> <span class="mf">0.5</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">addDisposableTo</span><span class="p">(</span><span class="n">disposeBag</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相信大家现在一看这个代码就已经知道它的意思了，所以就不再赘述了。响应式编程提供给了我们一种完全不同的思维方式，即使不去实际应用，去学习它本身就是一个很有意义的事情，况且在交互越来越复杂的时代，它更是提供了一种清晰的解决方案。我自己还谈不上入门，但已跃跃欲试要好好专研一番，希望此文能给想入门的同道们一些帮助。</p>
+
+<p>另附上<a href="https://github.com/sherlockyao/RxSwiftPractise">示例代码地址</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-16T16:00:00+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>, <a class='category' href='/blog/categories/mvvm/'>mvvm</a>, <a class='category' href='/blog/categories/reactive/'>reactive</a>, <a class='category' href='/blog/categories/reactivex/'>reactivex</a>, <a class='category' href='/blog/categories/rxswift/'>rxswift</a>, <a class='category' href='/blog/categories/swift/'>swift</a>, <a class='category' href='/blog/categories/han-shu-shi-bian-cheng/'>函数式编程</a>, <a class='category' href='/blog/categories/xiang-ying-shi-bian-cheng/'>响应式编程</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/" data-via="" data-counturl="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/11/10/head-first-reactive-programming-1/" title="Previous Post: 响应式编程入门（上）">&laquo; 响应式编程入门（上）</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
+    
+  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
+</section>
+
+  <section>
+  <h1>Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/02/16/head-first-reactive-programming-2/">响应式编程入门（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/10/head-first-reactive-programming-1/">响应式编程入门（上）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/08/weakself-and-strongself-in-blocks/">使用Block时何时需要WeakSelf和StrongSelf?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/28/uitableview-tips/">iOS UITableView 使用小贴士</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/09/custom-uiactivity/">为 UIActivityViewController 添加自定义的 UIActivity 选项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/hugging-vs-resistance/">Content Hugging vs. Compression Resistance</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/17/no-blocking-ui-cell-update/">iOS的UI并发处理方案</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/16/customize-navigation-bar-style/">自定义Navigation Bar样式</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/15/vim-swap/">Vim无法打开Swap文件的错误</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/14/set-up-rails-on-mac/">Mac上安装Ruby on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+    
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2016
+
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/';
+        var disqus_url = 'http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+</body>
+</html>

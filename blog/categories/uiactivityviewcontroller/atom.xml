@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: UIActivityViewController | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: uiactivityviewcontroller | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/uiactivityviewcontroller/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -49,10 +49,9 @@
 
 <p>实现好我们自定义的选项后，使用起来就非常简单了：</p>
 
-<p><code>objc
-NSArray* activities = @[ [CustomActivity1 new], [CustomActivity2 new] ];
+<pre><code class="objc">NSArray* activities = @[ [CustomActivity1 new], [CustomActivity2 new] ];
 [[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:activities]
-</code></p>
+</code></pre>
 
 <p>更多详细内容请点击这篇<a href="http://getnotebox.com/developer/uiactivityviewcontroller-ios-8/">参考文章</a>继续阅读</p>
 ]]></content>
