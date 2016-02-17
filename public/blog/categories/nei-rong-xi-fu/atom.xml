@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 内容吸附 | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/nei-rong-xi-fu/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -39,7 +39,7 @@
 
 <p>此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：</p>
 
-<blockquote><p>|&mdash;&mdash;60&mdash;&ndash;[Button]&mdash;-60&mdash;&mdash;|</p></blockquote>
+<blockquote><p>|&mdash;-60&mdash;[Button]&mdash;60&mdash;-|</p></blockquote>
 
 <p>但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：</p>
 

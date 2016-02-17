@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: ReactiveX | 姚翔的部落格]]></title>
+  <title><![CDATA[Category: reactivex | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/reactivex/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,217 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[响应式编程入门（下）]]></title>
+    <link href="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/"/>
+    <updated>2016-02-16T16:00:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2</id>
+    <content type="html"><![CDATA[<p>书接上文，前面我们简单地介绍了响应式编程（Reactive Programming）的一些基本思想，接下来我会通过实际例子，一步步演示如何将RP应用到实际的开发中去。因为<a href="https://github.com/ReactiveX/RxSwift">RxSwift</a>本身已经提供了非常好的Sample代码，所以我打算这里就通过复刻其中的GitHubSignup项目，来作为本次演示的主题。首先让我们来看看需要达到的效果：</p>
+
+<p><img src="%20/images/20160216/signup.png" title="" alt="File Inspector" /></p>
+
+<p>以下是我们将实现的主要功能（我这里省掉了提交表单的逻辑，其实现方法同其他的大同小异）：</p>
+
+<ul>
+<li>当用户在输入用户名时，实时去验证用户名是否可用，同时显示对应的验证结果</li>
+<li>当用户在输入密码时，要验证是否大于3位，同时显示对应的验证结果</li>
+<li>当用户重复密码时，要验证是否和第一次输入一致，同时显示对应的验证结果</li>
+<li>当且仅当三个输入区域都验证通过时，提交按钮才可被点击，否则将禁用</li>
+</ul>
+
+
+<p>因为密码的验证不需要网络请求，完全在本地完成，所以我们先从这个比较简单的入手。验证过程是在每次用户键入密码时触发的，所以我们可以把它看作是一个输入流，用图形表示就是类似这样：</p>
+
+<pre><code>--t----t---t-----t------&gt;
+
+t表示的就是一次键盘输入事件
+</code></pre>
+
+<p>不过我们不光需要知道输入事件，还需要知道输入事件产生时输入框内的文本内容，我们希望有一个这样的流：</p>
+
+<pre><code>--t----t---t-----t------&gt;
+  v    v   v     v
+-(1)-(12)-(123)-(1234)--&gt;
+</code></pre>
+
+<p>大家马上会想到我们可以通过一个简单的map来搞定，不过RxSwift是非常贴心的，这么常用的功能它们已经提供了封装，我们可以直接拿来用：</p>
+
+<pre><code class="swift">
+class ViewController: UIViewController {
+
+    @IBOutlet weak var passwordTextField: UITextField!
+
+    let password = Variable("")
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        passwordTextField.rx_text &lt;-&gt; password 
+    }
+}
+
+infix operator &lt;-&gt; {
+}
+
+func &lt;-&gt; &lt;T&gt;(property: ControlProperty&lt;T&gt;, variable: Variable&lt;T&gt;) -&gt; Disposable {
+    let bindToUIDisposable = variable
+        .bindTo(property)
+    let bindToVariable = property
+        .subscribe(onNext: { n in
+            variable.value = n
+            }, onCompleted:  {
+                bindToUIDisposable.dispose()
+        })
+
+    return StableCompositeDisposable.create(bindToUIDisposable, bindToVariable)
+}
+</code></pre>
+
+<p>在上面的代码中，我们申明了一个password的Variable，为的是把UI中的值绑定到它上面，方便后面的使用，所使用的<code>&lt;-&gt;</code>绑定操作符是自定义的，可以在底部的方法中看到。可以看到，到目前为止我们其实就用了一行代码生成了需要的数据流，接下来就是验证数据，转化成我们真正需要的结果流了：</p>
+
+<pre><code>--t----t---t-----t------&gt;
+  v    v   v     v
+-(1)-(12)-(123)-(1234)--&gt;
+  v    v   v     v
+--F----F---F-----T------&gt;
+</code></pre>
+
+<p>其实现的代码如下：</p>
+
+<pre><code class="swift">
+let passwordValidation = password.map { (password) -&gt; (valid: Bool?, message: String?) in
+    let numberOfCharacters = password.characters.count
+    if numberOfCharacters == 0 {
+        return (false, nil)
+    }
+    if numberOfCharacters &lt; 4 {
+        return (false, "Password must be at least 4 characters")
+    }
+    return (true, "Password acceptable")
+}
+.shareReplay(1)
+</code></pre>
+
+<p>我们的验证逻辑很简单，看一下输入字符的长度，如果大于3位则通过。最后的<code>shareReplay</code>是RxSwift提供的一个流操作函数，作用是为了保证在观察者订阅这个流的时候始终都能回播最后一个（数字1表示回播的数量）流中的值，这样能使界面上正确显示验证的状态。现在我们有了需要的流，接下来就是创建一个观察者来订阅这个流，从而能把结果显示在界面上反馈给用户，直接看代码：</p>
+
+<pre><code class="swift">
+func bindValidationResultToUI(source: Observable&lt;(valid: Bool?, message: String?)&gt;, validationErrorLabel: UILabel) {
+      source
+          .subscribeNext { v in
+              let validationColor: UIColor
+
+              if let valid = v.valid {
+                  validationColor = valid ? UIColor.greenColor() : UIColor.redColor()
+              } else {
+                  validationColor = UIColor.grayColor()
+              }
+
+              validationErrorLabel.textColor = validationColor
+              validationErrorLabel.text = v.message ?? ""
+          }
+          .addDisposableTo(disposeBag)
+}
+
+override func viewDidLoad() {
+
+        // ...
+
+    bindValidationResultToUI(
+            passwordValidation,
+            validationErrorLabel: self.passwordValidationLabel
+        ) 
+}
+</code></pre>
+
+<p>我们定义了一个帮助方法，它会订阅给定的验证流，并把结果显示在指定的Label上，怎么样是不是感觉非常简单，剩下要做的就是把刚才我们创建的密码验证流绑定到需要的标签上即可。依样画葫芦，接下来我们来创建重复密码的验证：</p>
+
+<pre><code class="swift">
+let repeatPasswordValidation = combineLatest(password, repeatedPassword) { (password, repeatedPassword) -&gt; (valid: Bool?, message: String?) in
+    if repeatedPassword.characters.count == 0 {
+        return (false, nil)
+    }
+    if repeatedPassword == password {
+        return (true, "Password repeated")
+    }
+    else {
+        return (false, "Password different")
+    }
+}
+.shareReplay(1)
+</code></pre>
+
+<p>这里我只贴出了核心的创建流的代码部分，其余的与验证密码都是雷同的。从上面的代码中可以看到，我们使用了combineLatest的函数来合并两个流，它的作用如下图：</p>
+
+<pre><code>X: --1----2------------3--4--|-&gt;
+
+Y: ----A-----B---C--D--------|-&gt;
+
+combineLatest(X, Y)
+
+   ----1A-2A-2B--2C-2D-3D-4D-|-&gt;
+</code></pre>
+
+<p>可见，它正好试用我们验证密码的场景，接下来就是简单的验证逻辑，如此我们便实现了重复密码的验证过程。现在让我们来看一下稍微复杂一点的逻辑，验证用户名：</p>
+
+<pre><code class="swift">
+let usernameValidation = username
+    .map { [unowned self] username -&gt; Observable&lt;(valid: Bool?, message: String?)&gt; in
+        if username.characters.count == 0 {
+            return just((false, nil))
+        }
+
+        if username.rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet().invertedSet) != nil {
+            return just((false, "Username can only contain numbers or digits"))
+        }
+
+        let loadingValue = (valid: nil as Bool?, message: "Checking availabilty ..." as String?)
+
+        return self.API.usernameAvailable(username)
+            .map { available in
+                if available {
+                    return (true, "Username available")
+                }
+                else {
+                    return (false, "Username already taken")
+                }
+            }
+            .startWith(loadingValue)
+    }
+    .switchLatest()
+    .shareReplay(1)
+</code></pre>
+
+<p>我们来具体分析一下整个过程，首先用户名的验证分为两个部分，一个本地合法性验证，另一个是远程的可用性验证，因为服务器验证涉及到异步，所以其验证结果本身就是一个流（拥有初始状态，结果状态）。然后我们来想象一下，当用户在输入用户名的时候，每当用户键入一个值，我们都需要去验证，但因为服务器验证是异步的，所以当用户键入下一字母的时候，前面的验证结果其实是没有用了，那我们应该怎么处理呢？switchLatest函数是我们的救星，下面是其官方文档的示意图：</p>
+
+<p><img src="%20/images/20160216/switchlatest.png" title="" alt="File Inspector" /></p>
+
+<p>简言之，switchLatest所操作的流其原本的每个值都是一个单独的流，经过处理后，它变成了一个单一的流，其中的每个值都是原本流当中最新流中的最新值。这就完美地解决了我们的问题，每当新的验证触发后，前一个验证流的值虽然还会产生，但是我们已经不去关心它了，从而不会对我们的结果产生影响。最后让我们来处理提交按钮的禁用逻辑，当我们用流的思路去考虑问题时，将发现这个需求简直太简单了：</p>
+
+<pre><code class="swift">
+let signupEnabled = combineLatest(
+    usernameValidation,
+    passwordValidation,
+    repeatPasswordValidation
+    ) { username, password, repeatPassword in
+        return (username.valid ?? false) &amp;&amp;
+            (password.valid ?? false) &amp;&amp;
+            (repeatPassword.valid ?? false)
+}
+
+signupEnabled
+    .subscribeNext { [unowned self] valid  in
+        self.submitButton.enabled = valid
+        self.submitButton.alpha = valid ? 1.0 : 0.5
+    }
+    .addDisposableTo(disposeBag)
+</code></pre>
+
+<p>相信大家现在一看这个代码就已经知道它的意思了，所以就不再赘述了。响应式编程提供给了我们一种完全不同的思维方式，即使不去实际应用，去学习它本身就是一个很有意义的事情，况且在交互越来越复杂的时代，它更是提供了一种清晰的解决方案。我自己还谈不上入门，但已跃跃欲试要好好专研一番，希望此文能给想入门的同道们一些帮助。</p>
+
+<p>另附上<a href="https://github.com/sherlockyao/RxSwiftPractise">示例代码地址</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[响应式编程入门（上）]]></title>
@@ -38,29 +249,26 @@
 
 <p>为了方便绘制，我们可以用ASCII来重绘上图：</p>
 
-<p>```
-&mdash;a&mdash;-b-c&mdash;-d&mdash;-X&mdash;&ndash;|&ndash;></p>
+<pre><code>--a---b-c---d---X---|-&gt;
 
-<p>a, b, c, d 是发出的值（Value）
+a, b, c, d 是发出的值（Value）
 X 是一个错误（Error）
 | 是一个完成（completed）信号
-&mdash;&ndash;> 表示的是时间轴
-```</p>
+---&gt; 表示的是时间轴
+</code></pre>
 
 <p>接下来让我们玩点有意思的，我们已经有了一个点击事件的流，现在让我们来建立一个记录点击次数的流。在通用的Reactive库中，每个流都提供了很多有用的方法来使用，比如map、filer、scan等等。当你调用其中一个方法时，比如<code>clickStream.map(f)</code>，它会返回一个基于点击事件流的新流，它并不会对原来的流做任何改动。这是一个叫做不可变（immutability）的特性，它和Reactive中的流是比目连枝的。这就使得我们可以通过链式调用来生成新的流，比如：<code>clickStream.map(f).scan(g)</code></p>
 
-<p>```
-  clickStream: &mdash;-c&mdash;&mdash;c&mdash;c&mdash;&mdash;c&mdash;&mdash;&mdash;c&mdash;></p>
+<pre><code>  clickStream: ---c----c--c----c------c--&gt;
 
-<pre><code>              v  map(c becomes 1) v
+                  v  map(c becomes 1) v
 
-           ---1----1--1----1------1--&gt;
+               ---1----1--1----1------1--&gt;
 
-              v      scan(+)      v
+                  v      scan(+)      v
+
+counterStream: ---1----2--3----4------5--&gt;
 </code></pre>
-
-<p>counterStream: &mdash;-1&mdash;&mdash;2&mdash;3&mdash;&mdash;4&mdash;&mdash;&mdash;5&mdash;>
-```</p>
 
 <p>其中<code>map(f)</code>会根据你提供的f函数把输入流中的每个值转化到新的流中去，在上面的例子里，我们将每个点击映射成了数字1。<code>scan(g)</code>则是把所有早先的值聚合成一个新值的函数，新值的计算公式是：<code>x = g(accumulated, current)</code>，当前的例子中，g就是一个简单的add(+)函数。就这样，counterStream变成了一个在每次点击时，都会产生一个点击总数的流。</p>
 

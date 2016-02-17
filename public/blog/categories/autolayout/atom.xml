@@ -4,7 +4,7 @@
   <title><![CDATA[Category: autolayout | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/autolayout/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -24,37 +24,28 @@
 
 <p>有时，我们会使用到table view自带的行分隔线样式，但是会遇到一个问题，就是当列表内没有cell时，或者cell数量不足以填充列表可见高度时，列表仍然会显示额外的分隔线。一个快速的解决方案是给table view设置一个空白的footer view：</p>
 
-<p>```objc</p>
-
-<p>tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];</p>
-
-<p>```</p>
+<pre><code class="objc">
+tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
+</code></pre>
 
 <h3>> 设置初始显示位置</h3>
 
 <p>在一些用例场景中，我们会要求当用户进入到一个列表页面时，他需要首先看到列表最底部的cell（或者其他一些位置不在top的cell）。通常我们第一反应便是在 UIViewController 的 viewWillAppear: 方法中用代码把table view滚动到需要的位置，但实际上这个方案并不奏效（造成这个的原因是，在viewWillAppear的这个阶段，view还没有真正地去layout，所以table view此时还不知道它真正的content size，也就无法滚动到正确的位置）；紧接着，我们会尝试把代码移动到 viewDidAppear: 方法中，结果确实起作用了，但是用户会在视觉上看到一个滚动的过程，所以并不理想。这里提供一种比较trick的解决方案来处理这个问题：</p>
 
-<p>```objc</p>
+<pre><code class="objc">
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
 
-<ul>
-<li><p>(void)viewDidLayoutSubviews {
-  [super viewDidLayoutSubviews];</p>
+    if (!self.hasFinishedLayoutView) {
+        self.hasFinishedLayoutView = YES; // 这里用一个flag来避免多次执行
 
-<p>  if (!self.hasFinishedLayoutView) {
-      self.hasFinishedLayoutView = YES; // 这里用一个flag来避免多次执行</p>
+        [self.tableView layoutIfNeeded];
 
-<pre><code>  [self.tableView layoutIfNeeded];
-
-  NSIndexPath* indexPath = ...; // 定义要滚动到的位置
-  [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+        NSIndexPath* indexPath = ...; // 定义要滚动到的位置
+        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    }
+}
 </code></pre>
-
-<p>  }
-}</p></li>
-</ul>
-
-
-<p>```</p>
 
 <p>我们把滚动代码移到 viewDidLayoutSubviews 这个生命周期方法中去，这样就可以成功了。注意一点：我这里手动调用了一下table view的layoutIfNeeded方法，因为在我的实践中，我的view都是用autolayout来构建的，如果这里不手动layout一下，table view的内容大小在这个阶段还是不正确的。</p>
 
@@ -104,7 +95,7 @@
 
 <p>此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：</p>
 
-<blockquote><p>|&mdash;&mdash;60&mdash;&ndash;[Button]&mdash;-60&mdash;&mdash;|</p></blockquote>
+<blockquote><p>|&mdash;-60&mdash;[Button]&mdash;60&mdash;-|</p></blockquote>
 
 <p>但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：</p>
 

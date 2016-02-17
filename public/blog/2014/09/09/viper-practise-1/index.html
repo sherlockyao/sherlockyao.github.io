@@ -74,7 +74,7 @@
   
 
 
-<time datetime="2014-09-09T14:35:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2014</time>
+<time datetime="2014-09-09T14:35:00+08:00" pubdate data-updated="true"></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://sherlockyao.com">Comments</a>
@@ -88,7 +88,7 @@
 
 <p>这个假想的App功能非常简单，类似一个简化版的Siri，用户在界面上输入一些文本后提交，应用就会返回一些回复的信息给你。首先在开始前我想说明一点，VIPER架构的核心思想就是把传统庞大的应用结构解构成View, interactor, Presenter, Entity, Routing五个部分，既然是做了解耦合，那各个部分直接应该做到相应的灵活和可重用，这点非常重要，我们在设计View，Presenter和Interactor时要时刻记住这一点。在objc.io原文章的示例代码中，这点做的就不够好，而在个人的实践中就更容易陷在这里，你会发现你给一个特定的View写了一个Presenter然后这个Presenter用到了一个特定的Interactor，这三个文件所做的就是应用中的一个特定的业务逻辑，所以也没办法被其他地方重用，其结果就是你只是简单的把原来属于一个ViewController的代码分散放到三个类中了，本质上却没有解耦合。请大家在看下面内容的时候时刻牢记这一点。同时示例我只提供了设计思路，并不提供实现的代码，因为示例的目的就是为了帮助理解VIPER的设计思路。</p>
 
-<p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
+<p>首先我们从View入手，界面上其实很简单：用户输入文本 -> 提交 -> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -181,12 +181,12 @@
   
 
 
-<time datetime="2014-09-09T14:35:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2014</time>
+<time datetime="2014-09-09T14:35:00+08:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/objective-c/'>Objective-C</a>, <a class='category' href='/blog/categories/viper/'>VIPER</a>, <a class='category' href='/blog/categories/architecture/'>architecture</a>, <a class='category' href='/blog/categories/ios/'>iOS</a>
+    <a class='category' href='/blog/categories/architecture/'>architecture</a>, <a class='category' href='/blog/categories/ios/'>ios</a>, <a class='category' href='/blog/categories/objective-c/'>objective-c</a>, <a class='category' href='/blog/categories/viper/'>viper</a>
   
 </span>
 
@@ -245,6 +245,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/16/head-first-reactive-programming-2/">响应式编程入门（下）</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/11/10/head-first-reactive-programming-1/">响应式编程入门（上）</a>
       </li>
     
@@ -296,10 +300,6 @@
         <a href="/blog/2014/09/11/core-data-migration-with-magicalrecord/">使用MagicalRecord时做Migration的注意事项</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2014/09/10/viper-practise-2/">VIPER实践（下）</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -312,7 +312,7 @@
     </div>
   </div>
   <footer role="contentinfo"><div style="display:inline">
-    Copyright &copy; 2015
+    Copyright &copy; 2016
 
     Sherlock Yao
 . Powered by <a href="http://octopress.org">Octopress</a> | 

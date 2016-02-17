@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ios | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -14,300 +14,432 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Content Hugging vs. Compression Resistance]]></title>
-    <link href="http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance/"/>
-    <updated>2015-04-18T16:32:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2015/04/18/hugging-vs-resistance</id>
-    <content type="html"><![CDATA[<p>iOS Auto Layout中的Content Hugging（内容吸附）和Compression Resistance（压缩阻力）曾一度让我非常困惑，看过一些说明的文章后当时觉得豁然开朗，但一段时间后便又忘记了，所以我决定再一次全面地整理一下并用博客的形式分享出去，这样可以帮助我自己加强记忆。
-(注：“内容吸附”和“压缩阻力”是特别借用了objccn里文章的翻译内容，非常感谢作者，<a href="http://objccn.io/issue-3-5/">原文链接</a>)</p>
+    <title type="html"><![CDATA[响应式编程入门（下）]]></title>
+    <link href="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/"/>
+    <updated>2016-02-16T16:00:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2</id>
+    <content type="html"><![CDATA[<p>书接上文，前面我们简单地介绍了响应式编程（Reactive Programming）的一些基本思想，接下来我会通过实际例子，一步步演示如何将RP应用到实际的开发中去。因为<a href="https://github.com/ReactiveX/RxSwift">RxSwift</a>本身已经提供了非常好的Sample代码，所以我打算这里就通过复刻其中的GitHubSignup项目，来作为本次演示的主题。首先让我们来看看需要达到的效果：</p>
 
-<p>首先，我们先简单说明一下约束（Constraint）中的Priority概念：Auto Layout中，每个约束都有一个1-1000的priority值，其中1000是其默认的值，也是 NSLayoutPriorityRequired 的，意思就是这个约束必须完全得到满足；所有小于1000的值则都是非强制的。系统在实现自动布局时，首先会满足所有priority是1000的约束，然后按照从大到小的值依次去尽量满足非强制性的约束，这种情况下，系统会尽量使结果的值接近于约束要求的值。</p>
+<p><img src="%20/images/20160216/signup.png" title="" alt="File Inspector" /></p>
 
-<p>现在让我们来具体说明一下Hugging和Resistance到底是什么，用通俗易懂的话来描述的话是这样的：</p>
+<p>以下是我们将实现的主要功能（我这里省掉了提交表单的逻辑，其实现方法同其他的大同小异）：</p>
 
 <ul>
-<li>Content Hugging：我的内容区域不想被扩展（变高或变宽）</li>
-<li>Compression Resistance：我的内容区域不想被压缩 （变矮或变短）</li>
+<li>当用户在输入用户名时，实时去验证用户名是否可用，同时显示对应的验证结果</li>
+<li>当用户在输入密码时，要验证是否大于3位，同时显示对应的验证结果</li>
+<li>当用户重复密码时，要验证是否和第一次输入一致，同时显示对应的验证结果</li>
+<li>当且仅当三个输入区域都验证通过时，提交按钮才可被点击，否则将禁用</li>
 </ul>
 
 
-<p>注意到了吧，描述里面都有“内容区域”这个概念，这个指的就是Intrinsic Content Size，所以压缩阻力和内容吸附只对定义了Intrinsic Content Size的UI元素有效，否则的话就不存在所谓的“我的内容区域”的概念了。</p>
+<p>因为密码的验证不需要网络请求，完全在本地完成，所以我们先从这个比较简单的入手。验证过程是在每次用户键入密码时触发的，所以我们可以把它看作是一个输入流，用图形表示就是类似这样：</p>
 
-<p>下面就以一个具体的例子来说明一下这两个属性的作用。假设我们有一个Button放置在界面中，同时设置了两个priority是500的约束：左右各距离父元素 30 points，即如下图所示：</p>
+<pre><code>--t----t---t-----t------&gt;
 
-<blockquote><p>|-30-[     Button     ]-30-|</p></blockquote>
+t表示的就是一次键盘输入事件
+</code></pre>
 
-<p>此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：</p>
+<p>不过我们不光需要知道输入事件，还需要知道输入事件产生时输入框内的文本内容，我们希望有一个这样的流：</p>
 
-<blockquote><p>|&mdash;&mdash;60&mdash;&ndash;[Button]&mdash;-60&mdash;&mdash;|</p></blockquote>
+<pre><code>--t----t---t-----t------&gt;
+  v    v   v     v
+-(1)-(12)-(123)-(1234)--&gt;
+</code></pre>
 
-<p>但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：</p>
+<p>大家马上会想到我们可以通过一个简单的map来搞定，不过RxSwift是非常贴心的，这么常用的功能它们已经提供了封装，我们可以直接拿来用：</p>
 
-<blockquote><p>|-30-[     Button     ]-30-|</p></blockquote>
+<pre><code class="swift">
+class ViewController: UIViewController {
 
-<p>然后，因为某些原因，它的父元素的宽度变窄了，在没有任何 Compression Resistance 属性时，它就变成了这样（按钮的文字显示不全了）：</p>
+    @IBOutlet weak var passwordTextField: UITextField!
 
-<blockquote><p>|-30-[But..]-30-|</p></blockquote>
+    let password = Variable("")
 
-<p>此时，如果我们给它设置一个水平priority是750的 Compression Resistance 属性，结果就会是：</p>
+    override func viewDidLoad() {
+        super.viewDidLoad()
 
-<blockquote><p>|-25-[Button]-25-|</p></blockquote>
+        passwordTextField.rx_text &lt;-&gt; password 
+    }
+}
 
-<p>同样的，如果这个属性的优先级小于500，那结果就没有变化。另外，如果我们把初始的两个左右边距的约束优先级调整到1000，那不管我们怎么设置压缩阻力或内容吸附的属性，都不会改变布局效果，这个按钮会始终保持左右边距30的布局。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[iOS的UI并发处理方案]]></title>
-    <link href="http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update/"/>
-    <updated>2015-04-17T14:36:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2015/04/17/no-blocking-ui-cell-update</id>
-    <content type="html"><![CDATA[<p>让用户体验更流畅是大部分应用必须要考虑的方面，我们知道iOS应用中所有UI相关的更新操作必须在主线程中进行，所以一个提升应用流畅性的大原则便是：尽量把那些耗时多，但不与UI更新直接相关的工作移出主线程。以下我将用一个比较常见的TableView Cell更新的例子来展示一下处理UI并发的几个最佳实践。我们的目标是让应用能在处理大量运算的同时，又能及时响应用户的交互以及界面上的事件。</p>
+infix operator &lt;-&gt; {
+}
 
-<p>假设我们有一个列表界面，每一行需要显示一个店铺的信息，通常的方案便是Subclass一个TableViewCell，然后提供自定义的方法接收店铺信息数据，并更新到UI上，大致代码如下：</p>
+func &lt;-&gt; &lt;T&gt;(property: ControlProperty&lt;T&gt;, variable: Variable&lt;T&gt;) -&gt; Disposable {
+    let bindToUIDisposable = variable
+        .bindTo(property)
+    let bindToVariable = property
+        .subscribe(onNext: { n in
+            variable.value = n
+            }, onCompleted:  {
+                bindToUIDisposable.dispose()
+        })
 
-<p>```objc</p>
+    return StableCompositeDisposable.create(bindToUIDisposable, bindToVariable)
+}
+</code></pre>
 
-<h1>StoreInfoCell : UITableViewCell</h1>
+<p>在上面的代码中，我们申明了一个password的Variable，为的是把UI中的值绑定到它上面，方便后面的使用，所使用的<code>&lt;-&gt;</code>绑定操作符是自定义的，可以在底部的方法中看到。可以看到，到目前为止我们其实就用了一行代码生成了需要的数据流，接下来就是验证数据，转化成我们真正需要的结果流了：</p>
 
-<p>@implementation StoreInfoCell</p>
+<pre><code>--t----t---t-----t------&gt;
+  v    v   v     v
+-(1)-(12)-(123)-(1234)--&gt;
+  v    v   v     v
+--F----F---F-----T------&gt;
+</code></pre>
 
-<ul>
-<li>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-}</li>
-</ul>
+<p>其实现的代码如下：</p>
 
+<pre><code class="swift">
+let passwordValidation = password.map { (password) -&gt; (valid: Bool?, message: String?) in
+    let numberOfCharacters = password.characters.count
+    if numberOfCharacters == 0 {
+        return (false, nil)
+    }
+    if numberOfCharacters &lt; 4 {
+        return (false, "Password must be at least 4 characters")
+    }
+    return (true, "Password acceptable")
+}
+.shareReplay(1)
+</code></pre>
 
-<p>@end</p>
+<p>我们的验证逻辑很简单，看一下输入字符的长度，如果大于3位则通过。最后的<code>shareReplay</code>是RxSwift提供的一个流操作函数，作用是为了保证在观察者订阅这个流的时候始终都能回播最后一个（数字1表示回播的数量）流中的值，这样能使界面上正确显示验证的状态。现在我们有了需要的流，接下来就是创建一个观察者来订阅这个流，从而能把结果显示在界面上反馈给用户，直接看代码：</p>
 
-<p>```</p>
+<pre><code class="swift">
+func bindValidationResultToUI(source: Observable&lt;(valid: Bool?, message: String?)&gt;, validationErrorLabel: UILabel) {
+      source
+          .subscribeNext { v in
+              let validationColor: UIColor
 
-<p>需求变化是软件开发的常态，不久PM便会说，在原有的店铺信息中，现在又增加了这个店铺过去七天的客流数据，于是要求应用能在Cell中多显示一个柱状图来表示这个客流数据。我们先来实现这个功能：</p>
+              if let valid = v.valid {
+                  validationColor = valid ? UIColor.greenColor() : UIColor.redColor()
+              } else {
+                  validationColor = UIColor.grayColor()
+              }
 
-<p>```objc</p>
-
-<ul>
-<li>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
-}</li>
-</ul>
-
-
-<p>```</p>
-
-<p>功能已经实现，但是因为HistogramTool这个工具去生成柱状图耗时相当久，我们在运行应用测试时会发现滚动列表界面时有严重的卡顿。接下来我们就来进行优化，显而易见是generateImageForTrafficData这个方法阻塞了主线程从而造成卡顿，我们可以把它移到其他线程中去处理，这里我们采用GCD来实现这个方案：</p>
-
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      UIImage *histogramImage = [HistogramTool generateImageForTrafficData:storeInfo.trafficData];
-      dispatch_async(dispatch_get_main_queue(), ^{
-          self.histogramImageView.image = histogramImage;
-      });
-  });
-}</p></li>
-</ul>
-
-
-<p>```</p>
-
-<p>经过上面的改进后，我们将看到页面的滚动变得流畅了，但是会发现页面有闪烁的现象，Cell上的柱状图会出现自我切换的问题，同时数据似乎会不匹配，这是为什么呢？原因就在于Reuse Cell，为了提升性能，所有TableView中的Cell都是从它的Reuse Pool中获取来的，所以当快速滚动列表时，新出现的Cell实例其实是一些已经移出界面可视范围被回收了的老Cell实例，但它们被回收时并没有取消异步生成柱状图的过程，所以当它们生成完后会又更新到界面上，这就会造成第7行的Cell显示出了第1行店铺的柱状图，然后过了一会儿又更新成了第7行店铺自己的柱状图。为了解决信息不匹配的问题，我们可以在更新前做一个check：</p>
-
-<p>```objc</p>
-
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
-
-<p>  self.trafficData = storeInfo.trafficData;
-dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-  TrafficData <em>data = storeInfo.trafficData;
-      UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-      dispatch_async(dispatch_get_main_queue(), ^{
-          if (data.id == self.trafficData.id) {
-              self.histogramImageView.image = histogramImage;
+              validationErrorLabel.textColor = validationColor
+              validationErrorLabel.text = v.message ?? ""
           }
-      });
-  });
-}</p></li>
-</ul>
+          .addDisposableTo(disposeBag)
+}
 
+override func viewDidLoad() {
 
-<p>```</p>
+        // ...
 
-<p>这样虽然解决了信息不匹配的问题，但却还是消耗了很多不必要的计算资源，因为当cell被移出屏幕后，对应cell的柱状图计算过程仍然还在queue中，我们应该取消它们，于是我们引入NSOperationQueue来进一步优化：</p>
+    bindValidationResultToUI(
+            passwordValidation,
+            validationErrorLabel: self.passwordValidationLabel
+        ) 
+}
+</code></pre>
 
-<p>```objc</p>
+<p>我们定义了一个帮助方法，它会订阅给定的验证流，并把结果显示在指定的Label上，怎么样是不是感觉非常简单，剩下要做的就是把刚才我们创建的密码验证流绑定到需要的标签上即可。依样画葫芦，接下来我们来创建重复密码的验证：</p>
 
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
+<pre><code class="swift">
+let repeatPasswordValidation = combineLatest(password, repeatedPassword) { (password, repeatedPassword) -&gt; (valid: Bool?, message: String?) in
+    if repeatedPassword.characters.count == 0 {
+        return (false, nil)
+    }
+    if repeatedPassword == password {
+        return (true, "Password repeated")
+    }
+    else {
+        return (false, "Password different")
+    }
+}
+.shareReplay(1)
+</code></pre>
 
-<p>  self.trafficData = storeInfo.trafficData;
-  [self.queue cancelAllOperations];
-[self asyncDisplayHistogramImage];
-}</p></li>
-<li><p>(void)asyncDisplayHistogramImage {
-  NSBlockOperation <em>operation = [NSBlockOperation new];
-__weak NSBlockOperation </em>weakOperation = operation;
-[operation addExecutionBlock:^{
-  if ([weakOperation isCancelled]) {
-    return;
-  }
-  TrafficData <em>data = storeInfo.trafficData;
-  UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-  if (![weakOperation isCancelled] &amp;&amp; data.id == self.trafficData.id) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      self.histogramImageView.image = histogramImage;
-    });
-  }
-}];
-[self.queue addOperation:operation];
-}</p></li>
-</ul>
+<p>这里我只贴出了核心的创建流的代码部分，其余的与验证密码都是雷同的。从上面的代码中可以看到，我们使用了combineLatest的函数来合并两个流，它的作用如下图：</p>
 
+<pre><code>X: --1----2------------3--4--|-&gt;
 
-<p>```</p>
+Y: ----A-----B---C--D--------|-&gt;
 
-<p>好了，现在我们有了取消计算的机制，但是如果用Time Profiler工具去查看应用运行情况时会发现，当快速滚动列表时，还是有一些时间浪费在不必要的计算上，这是因为在调用generateImageForTrafficData这个方法前并没有等待时间，当一个cell被显示在页面上时，它便已经开始了这个计算过程，而因为快速滚动的缘故它又被移出了界面，所以这个计算过程其实是浪费了的。所以我们可以加上一些等待时间来继续优化：</p>
+combineLatest(X, Y)
 
-<p>```objc</p>
+   ----1A-2A-2B--2C-2D-3D-4D-|-&gt;
+</code></pre>
 
-<ul>
-<li><p>(void)displayStoreInfo:(StoreInfo *)storeInfo {
-  self.titleLabel.text = storeInfo.title;
-self.addressLabel.text = storeInfo.address;
-self.histogramImageView.image = nil;</p>
+<p>可见，它正好试用我们验证密码的场景，接下来就是简单的验证逻辑，如此我们便实现了重复密码的验证过程。现在让我们来看一下稍微复杂一点的逻辑，验证用户名：</p>
 
-<p>  self.trafficData = storeInfo.trafficData;
-  [self cancelPreviousOperations];
-  [self performSelector:@selector(asyncDisplayHistogramImage) withObject:nil afterDelay:0.3];
-}</p></li>
-<li><p>(void)asyncDisplayHistogramImage {
-  NSBlockOperation <em>operation = [NSBlockOperation new];
-__weak NSBlockOperation </em>weakOperation = operation;
-[operation addExecutionBlock:^{
-  if ([weakOperation isCancelled]) {
-    return;
-  }
-  TrafficData <em>data = storeInfo.trafficData;
-  UIImage </em>histogramImage = [HistogramTool generateImageForTrafficData:data];
-  if (![weakOperation isCancelled] &amp;&amp; data.id == self.trafficData.id) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      self.histogramImageView.image = histogramImage;
-    });
-  }
-}];
-[self.queue addOperation:operation];
-}</p></li>
-<li><p>(void)cancelPreviousOperations {
-[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(asyncDisplayHistogramImage) object:nil];
-[self.queue cancelAllOperations];
-}</p></li>
-</ul>
+<pre><code class="swift">
+let usernameValidation = username
+    .map { [unowned self] username -&gt; Observable&lt;(valid: Bool?, message: String?)&gt; in
+        if username.characters.count == 0 {
+            return just((false, nil))
+        }
 
+        if username.rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet().invertedSet) != nil {
+            return just((false, "Username can only contain numbers or digits"))
+        }
 
-<p>// 然后在对于的TableView Delegate中也加上取消操作</p>
+        let loadingValue = (valid: nil as Bool?, message: "Checking availabilty ..." as String?)
 
-<ul>
-<li>(void)tableView:(UITableView <em>)tableView didEndDisplayingCell:(UITableViewCell </em>)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
-  [cell cancelPreviousOperations];
-}</li>
-</ul>
+        return self.API.usernameAvailable(username)
+            .map { available in
+                if available {
+                    return (true, "Username available")
+                }
+                else {
+                    return (false, "Username already taken")
+                }
+            }
+            .startWith(loadingValue)
+    }
+    .switchLatest()
+    .shareReplay(1)
+</code></pre>
 
+<p>我们来具体分析一下整个过程，首先用户名的验证分为两个部分，一个本地合法性验证，另一个是远程的可用性验证，因为服务器验证涉及到异步，所以其验证结果本身就是一个流（拥有初始状态，结果状态）。然后我们来想象一下，当用户在输入用户名的时候，每当用户键入一个值，我们都需要去验证，但因为服务器验证是异步的，所以当用户键入下一字母的时候，前面的验证结果其实是没有用了，那我们应该怎么处理呢？switchLatest函数是我们的救星，下面是其官方文档的示意图：</p>
 
-<p>```</p>
+<p><img src="%20/images/20160216/switchlatest.png" title="" alt="File Inspector" /></p>
 
-<p>通过以上一些方法，你将体会到流畅性上很大的提升，当然你还可以考虑加入image cache来再进一步优化。总之这里就是展示了一些UI并发处理的思路，希望抛砖引玉让大家打造出性能卓越的应用。</p>
+<p>简言之，switchLatest所操作的流其原本的每个值都是一个单独的流，经过处理后，它变成了一个单一的流，其中的每个值都是原本流当中最新流中的最新值。这就完美地解决了我们的问题，每当新的验证触发后，前一个验证流的值虽然还会产生，但是我们已经不去关心它了，从而不会对我们的结果产生影响。最后让我们来处理提交按钮的禁用逻辑，当我们用流的思路去考虑问题时，将发现这个需求简直太简单了：</p>
+
+<pre><code class="swift">
+let signupEnabled = combineLatest(
+    usernameValidation,
+    passwordValidation,
+    repeatPasswordValidation
+    ) { username, password, repeatPassword in
+        return (username.valid ?? false) &amp;&amp;
+            (password.valid ?? false) &amp;&amp;
+            (repeatPassword.valid ?? false)
+}
+
+signupEnabled
+    .subscribeNext { [unowned self] valid  in
+        self.submitButton.enabled = valid
+        self.submitButton.alpha = valid ? 1.0 : 0.5
+    }
+    .addDisposableTo(disposeBag)
+</code></pre>
+
+<p>相信大家现在一看这个代码就已经知道它的意思了，所以就不再赘述了。响应式编程提供给了我们一种完全不同的思维方式，即使不去实际应用，去学习它本身就是一个很有意义的事情，况且在交互越来越复杂的时代，它更是提供了一种清晰的解决方案。我自己还谈不上入门，但已跃跃欲试要好好专研一番，希望此文能给想入门的同道们一些帮助。</p>
+
+<p>另附上<a href="https://github.com/sherlockyao/RxSwiftPractise">示例代码地址</a></p>
 ]]></content>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[自定义Navigation Bar样式]]></title>
-    <link href="http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style/"/>
-    <updated>2015-04-16T15:51:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2015/04/16/customize-navigation-bar-style</id>
-    <content type="html"><![CDATA[<p>在开发iOS应用时，自定义Navigation Bar样式是非常普遍的一个需求，所以这里特别整理了一些常见的情况，以供快速查阅。照旧先附上参考的原文<a href="http://www.appcoda.com/customize-navigation-status-bar-ios-7/">链接</a>。</p>
+    <title type="html"><![CDATA[响应式编程入门（上）]]></title>
+    <link href="http://sherlockyao.com/blog/2015/11/10/head-first-reactive-programming-1/"/>
+    <updated>2015-11-10T14:01:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/11/10/head-first-reactive-programming-1</id>
+    <content type="html"><![CDATA[<p>Reactive Programming（响应式编程，以下简称RP）这个概念最近正火，本人也一直对其非常感兴趣，终于得了些空余时间可以学习下这门新技术，于是顺便整理些相关内容，希望可以帮助到一些想入门的朋友们。</p>
 
-<h3>> 更改导航栏背景色</h3>
+<p>我选择入门的框架是<a href="https://github.com/ReactiveX/RxSwift">RxSwift</a>，在过了一遍它官方提供的Tutorial playground代码后，发觉对RP的理念仍是一头雾水，一番Google后找到了这篇优秀的文章：<a href="https://gist.github.com/staltz/868e7e9bc2a7b8c1f754">The introduction to Reactive Programming you&rsquo;ve been missing</a>。读完之后醍醐灌顶，所以以下的博文内容我希望通过意译这篇文章结合RxSwift里的注册Sample来阐述RP的“流之世界观”（这个名称是我自己起的，因为一旦步入Reactive后，以往解决问题的思路将完全改变）。</p>
 
-<p>这个应该是最常见的需求了，同时也只需一行代码就可以实现：</p>
+<p>RP的学习曲线是蛮高的，如果缺少好的资源的话就更难了。看library的文档往往使人一头雾水，而一些教程文章往往只是教你如何用相关的库，很少触及到其真正架构的思想，从而使人不得要领。学习RP最难的部分是：如何用Reactive的方式思考。它要求我们摒除掉以往编程时的那种老思路（状态化、命令式），用一种完成不同的视角去考虑问题。那么<strong>到底什么是响应式编程（Reactive Programming）？</strong></p>
 
-<p>```objc</p>
+<h2>响应式编程就是面向异步数据流的编程</h2>
 
-<p>[[UINavigationBar appearance] setBarTintColor:[UIColor yellowColor]];</p>
+<p>这并不是什么新东西，事件总线或者典型的点击事件们就是一个异步事件流，你可以监听这个流，同时做一些额外的处理业务。响应式无法就是把这个理念给发扬光大了：不光是点击或者悬停事件，你几乎可以给所有东西都创建数据流。流(Stream)是廉价的、无所不在的，任何东西都可以成为流：变量，用户的输入，属性，缓存，数据结构等等。举得例子：想象一个你的微信朋友圈动态就是同点击事件一样的一个数据流，你可以监听它同时对其进行对应的响应。</p>
 
-<p>```</p>
+<p>在这基础之上，你还拥有一套不可思议工具集去操作这些流：合并、创建、过滤等等。这就是所谓的“函数式（functional）”施展魔力的地方。一个甚至多个流可以被当做另一个流的输入；你可以合并两个流；你可以过滤一个流从而得到一个只包含你感兴趣事件的流；你还可以把一个流中的值映射成其他值从而形成一个新的流。</p>
 
-<h3>> 更改导航栏标题的样式</h3>
+<p>那让我们来仔细看一下“流”，拿我们熟悉的“点击按钮事件”流来举例：</p>
 
-<p>有时我们需要修改标题成特殊的字体样式以达到设计上得效果，可以通过设置titleTextAttributes的属性来实现，以下是一些常用的key，同时附上实现代码：</p>
+<p><img src="%20/images/20151110/stream.png" title="" alt="File Inspector" /></p>
+
+<p>一个流就是一个按照时间排序的持续事件的序列，它会发出三种不同类型的东西：一个某种类型的值（Value）、一个错误（Error）、以及一个完成（Completed）的信号。比方说这个按钮所在的view或者window被关闭了，那么就会发出一个完成信号。我们可以定义不同的函数，使流分别在发出一个值、或者错误、或者完成信号时，执行不同的函数，从而异步地捕获这些发出的事件。有时候我们可以忽略错误和完成事件，只关心产生值的事件。而这个监听行为，我们称之为“订阅（subscribing）”，那些我们定义的函数，就称为“观察者（Observer）”，那些流则称为“对象（subject）”或者“可被观者物（observable）”。</p>
+
+<p>为了方便绘制，我们可以用ASCII来重绘上图：</p>
+
+<pre><code>--a---b-c---d---X---|-&gt;
+
+a, b, c, d 是发出的值（Value）
+X 是一个错误（Error）
+| 是一个完成（completed）信号
+---&gt; 表示的是时间轴
+</code></pre>
+
+<p>接下来让我们玩点有意思的，我们已经有了一个点击事件的流，现在让我们来建立一个记录点击次数的流。在通用的Reactive库中，每个流都提供了很多有用的方法来使用，比如map、filer、scan等等。当你调用其中一个方法时，比如<code>clickStream.map(f)</code>，它会返回一个基于点击事件流的新流，它并不会对原来的流做任何改动。这是一个叫做不可变（immutability）的特性，它和Reactive中的流是比目连枝的。这就使得我们可以通过链式调用来生成新的流，比如：<code>clickStream.map(f).scan(g)</code></p>
+
+<pre><code>  clickStream: ---c----c--c----c------c--&gt;
+
+                  v  map(c becomes 1) v
+
+               ---1----1--1----1------1--&gt;
+
+                  v      scan(+)      v
+
+counterStream: ---1----2--3----4------5--&gt;
+</code></pre>
+
+<p>其中<code>map(f)</code>会根据你提供的f函数把输入流中的每个值转化到新的流中去，在上面的例子里，我们将每个点击映射成了数字1。<code>scan(g)</code>则是把所有早先的值聚合成一个新值的函数，新值的计算公式是：<code>x = g(accumulated, current)</code>，当前的例子中，g就是一个简单的add(+)函数。就这样，counterStream变成了一个在每次点击时，都会产生一个点击总数的流。</p>
+
+<p>现在让我们来看下Reactive的真正魔力，比方说我们现在需要一个“双击事件”的流，为了提升点难度，我们再假设“三击事件”也需要同双击一样被监听，或者更狠一点，任意的“多次连击事件”都需要被监听。好，冷静，先让我们来想象一下如果用传统的实现方式你会怎么做？我敢打赌那样的代码一定会恶心到自己，需要定义一些变量来记录状态，同时还要对时间间隔做一些必要的处理。</p>
+
+<p>但是，在Reactive的世界里，这是相当简单的事情。实际上只需要4行代码就可以搞定了，不过先让我们撇开代码，无论你是一个菜鸟还是专家，用时间流图的方式去思考是理解如何创建流的最佳方式：</p>
+
+<p><img src="%20/images/20151110/click-stream.png" title="" alt="File Inspector" /></p>
+
+<p>上图灰框里是把一个流转化成另一个流的函数。第一个函数的作用就是把流中的点击事件按照最大250毫秒间隔累计起来成为一个列表流（不要担心不懂这些函数的功能，目前我们只是在演示响应式的思想）。然后我们再通过<code>map()</code>把结果映射成每个列表中元素数量的流，这样我们就获得了连击次数了。最后我们用一个过滤函数过滤了连击数是1的值，这样我们就订阅（subscribe)/监听(listen)这个结果流来实现我们想要的功能了。</p>
+
+<p>怎么样，这样的解决思路是不是很优美？这个例子只是响应式编程的冰山一角，你可以在任何流上都应用这样的操作，比如说一个API请求相应的流，另一方面，这样的函数有非常之多。</p>
+
+<p><strong>那我们为什么要用响应式编程呢？</strong></p>
+
+<p>RP提升了你代码的抽象级别，所以你只需要专注于那些业务逻辑中相互关联的事件，而不需要一直纠结在所有的实现细节中。RP中的代码会更简明。</p>
+
+<p>在现代那些有着大量UI交互元素，同时每个交互又有其相关联的数据事件的webapp和手机应用中，RP的益处就更大了。10年前，一个网页的交互可能只是简单的提交一份表单给后端，然后在前端展现一些数据；但如今，应用已经进化成更实时的体验：修改表单中某一项的值可能就自动触发了一个后台保存的事件，“给别人点赞”这样一个操作会实时地反馈到被点赞的用户那边，这样的用例非常之多。所以我们需要一些工具来处理这种实时性的需求，响应式编程就是目前最佳的选择。</p>
+
+<p>（待续……）</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用Block时何时需要WeakSelf和StrongSelf?]]></title>
+    <link href="http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks/"/>
+    <updated>2015-08-08T15:36:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/08/08/weakself-and-strongself-in-blocks</id>
+    <content type="html"><![CDATA[<p>现在我们用 Objective-C 写代码时已经越来越多地用到了block，相比delegate的回调方式，block更直观易用。相信每个使用过block的人都遇到过block中使用self时需要weakself的情况，以下就是非常典型的一段代码：</p>
+
+<pre><code class="objc">
+__weak __typeof(self)weakSelf = self;
+[self.context performBlock:^{
+    __strong __typeof(weakSelf)strongSelf = weakSelf;
+    [strongSelf doSomething];
+}];
+</code></pre>
+
+<p>对于小白的我一般越到这种情况就是直接拷贝上面这个模板到需要的代码中去，而不知个中原委。但作为一个合格的程序员，是需要完完全全明白自己写的每一行代码是在做什么的，所以现在就简单说明一下这个 WeakSelf 和 StrongSelf 到底是什么。首先看下面这段代码：</p>
+
+<pre><code class="objc">
+[UIView animateWithDuration:0.2 animations:^{
+    self.myView.alpha = 1.0; 
+}];
+</code></pre>
+
+<p>在ARC环境下的，每个block在创建时，编译器会对里面用到的所有对象自动增加一个reference count，然后当block执行完毕时，再释放这些reference。针对上面的代码，在animations block执行期间，self（假设这里的self是个view controller）的引用数会被加1，执行完后再次减1。但这种情况下为什么我们一般不会去weakify self呢？因为这个block的生命周期是明确可知的，在这个block执行期间当前的view controller一般是不会被销毁的，所以不存在什么风险。现在我们看下面这个例子：</p>
+
+<pre><code class="objc">
+NSBlockOperation *op = [[[NSBlockOperation alloc] init] autorelease];
+[op addExecutionBlock:^ {
+    [self doSomething];
+    [self doMoreThing];
+}];
+</code></pre>
+
+<p>在这种情况下，我们并不知道这个execution block什么时候会执行完毕，所以很有可能发生的情况是，我在block还没执行完毕时就想销毁当前对象（比方说用户关闭了当前页面），这时就会因为block还对self有一个reference而没有立即销毁，这会引起很多问题，比方说你写在<code>- (void)dealloc {}</code>中的代码并不能马上得到执行。所以为了避免这种情况，我们会在block前加上<code>__weak __typeof(self)weakSelf = self;</code>的定义来使block对self获取一个弱引用（也就是refrence count不会加1）。</p>
+
+<p>那block中的StrongSelf又是做什么的呢？还是上面的例子，当你加了WeakSelf后，block中的self随时都会有被释放的可能，所以会出现一种情况，在调用doSomething的时候self还存在，在doMoreThing的时候self就变成nil了，所以为了避免这种情况发生，我们会重新strongify self。一般情况下，我们都建议这么做，这没什么风险，除非你不关心self在执行过程中变成nil，或者你确定它不会变成nil（比方说所以block都在main thread执行）。</p>
+
+<p>好了，简要的说明到此结束，想要详细了解的可以自行google，这类文章很多。前面代码中的WeakSelf、StrongSelf转换看起来很冗长，不利于阅读代码，下面介绍一个超好用的宏定义代码，它是这个开源库的一部分：<a href="https://github.com/jspahrsummers/libextobjc">libextobjc</a>。把它加入到项目中后，就可以用以下如此简洁的格式来完成转换啦：</p>
+
+<pre><code class="objc">
+#import "EXTScope.h"
+
+@weakify(self)
+[self.context performBlock:^{
+    @strongify(self)
+    [self doSomething];
+}];
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[iOS UITableView 使用小贴士]]></title>
+    <link href="http://sherlockyao.com/blog/2015/06/28/uitableview-tips/"/>
+    <updated>2015-06-28T15:27:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/06/28/uitableview-tips</id>
+    <content type="html"><![CDATA[<p>UITableView 可以说是搭建应用时必不可少的控件之一，同时也是最常见、遇到最多自定义需求的控件之一，所以今天这里总结了几个平时使用时的小技巧，给自己备忘的同时也分享给大家。</p>
+
+<h3>> 去除多余的Separator</h3>
+
+<p>有时，我们会使用到table view自带的行分隔线样式，但是会遇到一个问题，就是当列表内没有cell时，或者cell数量不足以填充列表可见高度时，列表仍然会显示额外的分隔线。一个快速的解决方案是给table view设置一个空白的footer view：</p>
+
+<pre><code class="objc">
+tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
+</code></pre>
+
+<h3>> 设置初始显示位置</h3>
+
+<p>在一些用例场景中，我们会要求当用户进入到一个列表页面时，他需要首先看到列表最底部的cell（或者其他一些位置不在top的cell）。通常我们第一反应便是在 UIViewController 的 viewWillAppear: 方法中用代码把table view滚动到需要的位置，但实际上这个方案并不奏效（造成这个的原因是，在viewWillAppear的这个阶段，view还没有真正地去layout，所以table view此时还不知道它真正的content size，也就无法滚动到正确的位置）；紧接着，我们会尝试把代码移动到 viewDidAppear: 方法中，结果确实起作用了，但是用户会在视觉上看到一个滚动的过程，所以并不理想。这里提供一种比较trick的解决方案来处理这个问题：</p>
+
+<pre><code class="objc">
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+
+    if (!self.hasFinishedLayoutView) {
+        self.hasFinishedLayoutView = YES; // 这里用一个flag来避免多次执行
+
+        [self.tableView layoutIfNeeded];
+
+        NSIndexPath* indexPath = ...; // 定义要滚动到的位置
+        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    }
+}
+</code></pre>
+
+<p>我们把滚动代码移到 viewDidLayoutSubviews 这个生命周期方法中去，这样就可以成功了。注意一点：我这里手动调用了一下table view的layoutIfNeeded方法，因为在我的实践中，我的view都是用autolayout来构建的，如果这里不手动layout一下，table view的内容大小在这个阶段还是不正确的。</p>
+
+<h3>> 随着Cell一起滚动的Section Header</h3>
+
+<p>UITableView的section header view有一个自带的炫酷功能，就是浮动(floating)，当列表滚动的时候，它会自动附着在顶部直到其他Section的内容把它顶掉。但是我们有时候不想要这样的效果，我们希望它能跟着cell一起滚动，那应该怎么处理呢？很不幸的是，官方公开的API中并不提供这种选项，那怎么办呢？我自己选择的一种解决方案就是，用cell的方式来实现header的功能：1）去掉所有section header的定义； 2）自己维护好DataSource的index path关系，每个section的第一行是header cell，接下去的才是真正展示数据的cell。</p>
+
+<h3>> 自适应高度的Cell（Self-Sizing Cell）</h3>
+
+<p>关于这个话题，网上已经有很多教程了，我这里就不再赘述，而是列出一些关键点以供备忘用。因为要能灵活运用这个功能，了解其原理是很重要的，tips只是为了不违背“好记性不如烂笔头”这个亘古不变的告诫，所以如果大家对其仍一知半解的话，建议看WWDC官方视频深入了解一下。<a href="https://developer.apple.com/videos/wwdc/2014/#226">视频链接请戳这里</a></p>
+
+<p>下面是一些要点：</p>
 
 <ul>
-<li>UITextAttributeFont – Key to the font</li>
-<li>UITextAttributeTextColor – Key to the text color</li>
-<li>UITextAttributeTextShadowColor – Key to the text shadow color</li>
-<li>UITextAttributeTextShadowOffset – Key to the offset used for the text shadow</li>
+<li><p>把UITableView的<strong>rowHeight</strong>属性设置成<strong>UITableViewAutomaticDimension</strong></p></li>
+<li><p>把UITableView的<strong>estimatedRowHeight</strong>属性设置成适合实际情况的估算值</p></li>
+<li><p>如果使用Autolayout约束的方式来定义cell的高度，一定要加足够多的约束，从而能让cell通过这些约束计算出对应的高度。比如：一个只显示一个UILabel的cell，我们要给label同时加上距离ContentView top和bottom两个约束，这样cell才能通过label内容的高度，再加上上下距离来确定cell需要的实际高度是多少。</p></li>
+<li><p>一般涉及到动态高度的情况都会有UILabel元素的加入，所以如果想要通过label的内容来扩大cell高度的话，记得要把numberOfLines属性设置成0</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[为 UIActivityViewController 添加自定义的 UIActivity 选项]]></title>
+    <link href="http://sherlockyao.com/blog/2015/06/09/custom-uiactivity/"/>
+    <updated>2015-06-09T15:13:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2015/06/09/custom-uiactivity</id>
+    <content type="html"><![CDATA[<p>在现今开发应用的过程中，为其添加分享功能几乎成了一个不可或缺的需求。而 iOS 里的 UIActivityViewController 为我们提供了一种非常简单、快速的实现方案，因此往往成为初期快速迭代中的第一选择。但是，其自带的 Activity Type 毕竟有限，所以有时我们需要添加一些自定义的类型来满足需求。这里我就简单说明一下如何通过继承 UIActivity 来添加自定义选项。</p>
+
+<p>首先，让我们再简单认识一下UIActivityViewController，它到底是用来做什么的呢？（UIActivityViewController自从 iOS6 开始便被加入到 API 中，要具体了解请看<a href="http://nshipster.com/uiactivityviewcontroller/">此文</a>）总得来说，它主要做两件事：</p>
+
+<ul>
+<li><p>它从你的应用接收各种对象数据，可以是 NSString, NSAttributedString, NSURL, UIImage 等等，它们被称为 Activity Items。</p></li>
+<li><p>它管理着所有的 Activities，它把接收到的数据传递给每个 Activity，同时展示给用户；这些 Activities 包括系统自带的，用户自定义的，以及来自 Share and Action Extensions 的。</p></li>
 </ul>
 
 
-<p>```objc</p>
+<p>它展示的界面效果是这样的：</p>
 
-<p>NSShadow *shadow = [NSShadow new];
-shadow.shadowColor = [UIColor grayColor];
-shadow.shadowOffset = CGSizeMake(0, 1);
-[[UINavigationBar appearance] setTitleTextAttributes: @{
-  NSForegroundColorAttributeName : [UIColor whiteColor],
-  NSShadowAttributeName : shadow,
-  NSFontAttributeName : [UIFont fontWithName:@&ldquo;HelveticaNeue&rdquo; size:21.0]
-}];</p>
+<p><img src="%20/images/20150609/uiavc.png" title="" alt="File Inspector" /></p>
 
-<p>```</p>
+<p>它把 Activities 分成了上下两部分，上面的都是属于 Share 类别的，而下面的则是 Action 类别。UIActivityViewController 的 UI 界面是系统生成的，不支持自定义，所以如果对界面有特殊要求的话，恐怕只能自己去实现相应的功能了（这里有一个<a href="https://github.com/overshare/overshare-kit">开源库</a>可以参考），但是你也失去了其他应用实现的 Share Extensions 和 Action Extensions 的支持了。</p>
 
-<p>有些设计会要求使用logo或其他更复杂的内容代替文字显示在标题位置，这个时候我们可以通过设置navigationItem的titleView来实现这些需求，这里以简单地替换成图片为例子：</p>
+<p>言归正传，我们来看一下如何添加一个自定义的分享选项。其实过程非常简单，你只需要新建一个类，把它作为 UIActivity 的子类，然后重载以下这些方法：</p>
 
-<p>```objc</p>
+<ul>
+<li><p><code>+ (UIActivityCategory)activityCategory</code> 这个方法就是告诉系统这个 Activity 是 Action 类型还是 Share 类型，默认是 Action，所以我们这里要返回 UIActivityCategoryShare。</p></li>
+<li><p><code>- (NSString *)activityType</code> 用来区分不同 activity 的字符串，用你的 bundle id 做前缀就会避免冲突</p></li>
+<li><p><code>- (NSString *)activityTitle</code> 显示在选项图标下的文字</p></li>
+<li><p><code>- (UIImage *)activityImage</code> 图标素材，这里要注意的是，目前只有 iOS 8 才支持显示彩色的图标，在这之前，你所提供的素材其实是作为 mask 来使用的，显示的则是黑白效果</p></li>
+<li><p><code>- (BOOL)canPerformWithActivityItems:(NSArray *)activityItems</code> 这里就是你通过 items 来判断当前 Activity 是否支持，如果不支持（返回No），则当前选项不会在界面中显示出来</p></li>
+<li><p><code>- (void)prepareWithActivityItems:(NSArray *)activityItems</code> 为分享做准备，你必须在这里把这些 items 保存下来，然后做一些适当的准备工作</p></li>
+<li><p><code>- (void)performActivity</code> 真正执行 share 动作的地方，这里要注意的是，不管分享成功与否，都要在结束后调用 <code>- (void)activityDidFinish:(BOOL)completed</code> 这个方法来通知系统分享结束了</p></li>
+</ul>
 
-<p>// 这里的viewController就是对应的要替换标题的那个view controller，而不是navigation controller本身
-viewController.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&ldquo;title&rdquo;]];</p>
 
-<p>```</p>
+<p>实现好我们自定义的选项后，使用起来就非常简单了：</p>
 
-<h3>> 修改导航栏上按钮的颜色</h3>
+<pre><code class="objc">NSArray* activities = @[ [CustomActivity1 new], [CustomActivity2 new] ];
+[[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:activities]
+</code></pre>
 
-<p>我们可以通过设置tintColor来实现，要注意的是，这个颜色会同时影响到所有按钮上的文字和图片：</p>
-
-<p>```objc</p>
-
-<p>[[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];</p>
-
-<p>```</p>
-
-<h3>> 添加更多的导航栏按钮</h3>
-
-<p>这种情况下，我们可以通过设置leftBarButtonItems和rightBarButtonItems来实现，直接给出一段实例代码，大家一看就懂：</p>
-
-<p>```objc</p>
-
-<p>UIBarButtonItem <em>markItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@&ldquo;mark&rdquo;] selectedImage:nil size:CGSizeMake(40, 40) target:self action:@selector(markButtonClicked:)];
-UIBarButtonItem </em>starItem = [UIBarButtonItem barItemWithImage:[UIImage imageNamed:@&ldquo;star&rdquo;] selectedImage:[UIImage imageNamed:@&ldquo;star_selected&rdquo;] size:CGSizeMake(30, 40) target:self action:@selector(starButtonClicked:)];
-self.navigationItem.rightBarButtonItems = @[starItem, markItem];</p>
-
-<p>```</p>
+<p>更多详细内容请点击这篇<a href="http://getnotebox.com/developer/uiactivityviewcontroller-ios-8/">参考文章</a>继续阅读</p>
 ]]></content>
   </entry>
   

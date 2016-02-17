@@ -4,7 +4,7 @@
   <title><![CDATA[姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2015-11-11T10:41:03+08:00</updated>
+  <updated>2016-02-17T13:50:21+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,355 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[响应式编程入门（下）]]></title>
+    <link href="http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2/"/>
+    <updated>2016-02-16T16:00:00+08:00</updated>
+    <id>http://sherlockyao.com/blog/2016/02/16/head-first-reactive-programming-2</id>
+    <content type="html"><![CDATA[<p>书接上文，前面我们简单地介绍了响应式编程（Reactive Programming）的一些基本思想，接下来我会通过实际例子，一步步演示如何将RP应用到实际的开发中去。因为<a href="https://github.com/ReactiveX/RxSwift">RxSwift</a>本身已经提供了非常好的Sample代码，所以我打算这里就通过复刻其中的GitHubSignup项目，来作为本次演示的主题。首先让我们来看看需要达到的效果：</p>
+
+<p><img src="http://sherlockyao.com/images/20160216/signup.png" title="" alt="File Inspector" /></p>
+
+<p>以下是我们将实现的主要功能（我这里省掉了提交表单的逻辑，其实现方法同其他的大同小异）：</p>
+
+<ul>
+<li>当用户在输入用户名时，实时去验证用户名是否可用，同时显示对应的验证结果</li>
+<li>当用户在输入密码时，要验证是否大于3位，同时显示对应的验证结果</li>
+<li>当用户重复密码时，要验证是否和第一次输入一致，同时显示对应的验证结果</li>
+<li>当且仅当三个输入区域都验证通过时，提交按钮才可被点击，否则将禁用</li>
+</ul>
+
+
+<p>因为密码的验证不需要网络请求，完全在本地完成，所以我们先从这个比较简单的入手。验证过程是在每次用户键入密码时触发的，所以我们可以把它看作是一个输入流，用图形表示就是类似这样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--t----t---t-----t------&gt;
+</span><span class='line'>
+</span><span class='line'>t表示的就是一次键盘输入事件</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不过我们不光需要知道输入事件，还需要知道输入事件产生时输入框内的文本内容，我们希望有一个这样的流：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--t----t---t-----t------&gt;
+</span><span class='line'>  v    v   v     v
+</span><span class='line'>-(1)-(12)-(123)-(1234)--&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>大家马上会想到我们可以通过一个简单的map来搞定，不过RxSwift是非常贴心的，这么常用的功能它们已经提供了封装，我们可以直接拿来用：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">class</span> <span class="nl">ViewController</span><span class="p">:</span> <span class="bp">UIViewController</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">@</span><span class="kt">IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nl">passwordTextField</span><span class="p">:</span> <span class="bp">UITextField</span><span class="o">!</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">password</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kr">override</span> <span class="k">func</span> <span class="n">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nb">super</span><span class="p">.</span><span class="n">viewDidLoad</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">passwordTextField</span><span class="p">.</span><span class="n">rx_text</span> <span class="o">&lt;-&gt;</span> <span class="n">password</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">infix</span> <span class="kr">operator</span> <span class="o">&lt;-&gt;</span> <span class="p">{</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">func</span> <span class="o">&lt;-&gt;</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="nl">property</span><span class="p">:</span> <span class="n">ControlProperty</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="nl">variable</span><span class="p">:</span> <span class="n">Variable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Disposable</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">bindToUIDisposable</span> <span class="o">=</span> <span class="n">variable</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">bindTo</span><span class="p">(</span><span class="n">property</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">bindToVariable</span> <span class="o">=</span> <span class="n">property</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="nl">onNext</span><span class="p">:</span> <span class="p">{</span> <span class="n">n</span> <span class="k">in</span>
+</span><span class='line'>            <span class="n">variable</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">n</span>
+</span><span class='line'>            <span class="p">},</span> <span class="nl">onCompleted</span><span class="p">:</span>  <span class="p">{</span>
+</span><span class='line'>                <span class="n">bindToUIDisposable</span><span class="p">.</span><span class="n">dispose</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">StableCompositeDisposable</span><span class="p">.</span><span class="n">create</span><span class="p">(</span><span class="n">bindToUIDisposable</span><span class="p">,</span> <span class="n">bindToVariable</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的代码中，我们申明了一个password的Variable，为的是把UI中的值绑定到它上面，方便后面的使用，所使用的<code>&lt;-&gt;</code>绑定操作符是自定义的，可以在底部的方法中看到。可以看到，到目前为止我们其实就用了一行代码生成了需要的数据流，接下来就是验证数据，转化成我们真正需要的结果流了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="o">--</span><span class="n">t</span><span class="o">----</span><span class="n">t</span><span class="o">---</span><span class="n">t</span><span class="o">-----</span><span class="n">t</span><span class="o">------&gt;</span>
+</span><span class='line'>  <span class="n">v</span>    <span class="n">v</span>   <span class="n">v</span>     <span class="n">v</span>
+</span><span class='line'><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span><span class="o">--&gt;</span>
+</span><span class='line'>  <span class="n">v</span>    <span class="n">v</span>   <span class="n">v</span>     <span class="n">v</span>
+</span><span class='line'><span class="o">--</span><span class="n">F</span><span class="o">----</span><span class="n">F</span><span class="o">---</span><span class="n">F</span><span class="o">-----</span><span class="n">T</span><span class="o">------&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实现的代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">passwordValidation</span> <span class="o">=</span> <span class="n">password</span><span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">numberOfCharacters</span> <span class="o">=</span> <span class="n">password</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">numberOfCharacters</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">numberOfCharacters</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Password must be at least 4 characters&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Password acceptable&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们的验证逻辑很简单，看一下输入字符的长度，如果大于3位则通过。最后的<code>shareReplay</code>是RxSwift提供的一个流操作函数，作用是为了保证在观察者订阅这个流的时候始终都能回播最后一个（数字1表示回播的数量）流中的值，这样能使界面上正确显示验证的状态。现在我们有了需要的流，接下来就是创建一个观察者来订阅这个流，从而能把结果显示在界面上反馈给用户，直接看代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">func</span> <span class="nf">bindValidationResultToUI</span><span class="p">(</span><span class="nl">source</span><span class="p">:</span> <span class="n">Observable</span><span class="o">&lt;</span><span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="nl">validationErrorLabel</span><span class="p">:</span> <span class="bp">UILabel</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">source</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">subscribeNext</span> <span class="p">{</span> <span class="n">v</span> <span class="k">in</span>
+</span><span class='line'>            <span class="k">let</span> <span class="nl">validationColor</span><span class="p">:</span> <span class="bp">UIColor</span>
+</span><span class='line'>  
+</span><span class='line'>            <span class="k">if</span> <span class="k">let</span> <span class="n">valid</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">valid</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">validationColor</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">?</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">greenColor</span><span class="p">()</span> <span class="o">:</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">redColor</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">validationColor</span> <span class="o">=</span> <span class="bp">UIColor</span><span class="p">.</span><span class="n">grayColor</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>  
+</span><span class='line'>            <span class="n">validationErrorLabel</span><span class="p">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="n">validationColor</span>
+</span><span class='line'>            <span class="n">validationErrorLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">message</span> <span class="o">??</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">addDisposableTo</span><span class="p">(</span><span class="n">disposeBag</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">override</span> <span class="k">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bindValidationResultToUI</span><span class="p">(</span>
+</span><span class='line'>            <span class="n">passwordValidation</span><span class="p">,</span>
+</span><span class='line'>            <span class="nl">validationErrorLabel</span><span class="p">:</span> <span class="nb">self</span><span class="p">.</span><span class="n">passwordValidationLabel</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们定义了一个帮助方法，它会订阅给定的验证流，并把结果显示在指定的Label上，怎么样是不是感觉非常简单，剩下要做的就是把刚才我们创建的密码验证流绑定到需要的标签上即可。依样画葫芦，接下来我们来创建重复密码的验证：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">repeatPasswordValidation</span> <span class="o">=</span> <span class="n">combineLatest</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">repeatedPassword</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">repeatedPassword</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">repeatedPassword</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">repeatedPassword</span> <span class="o">==</span> <span class="n">password</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Password repeated&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Password different&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里我只贴出了核心的创建流的代码部分，其余的与验证密码都是雷同的。从上面的代码中可以看到，我们使用了combineLatest的函数来合并两个流，它的作用如下图：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="nl">X</span><span class="p">:</span> <span class="o">--</span><span class="mi">1</span><span class="o">----</span><span class="mi">2</span><span class="o">------------</span><span class="mi">3</span><span class="o">--</span><span class="mi">4</span><span class="o">--|-&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">Y</span><span class="p">:</span> <span class="o">----</span><span class="n">A</span><span class="o">-----</span><span class="n">B</span><span class="o">---</span><span class="n">C</span><span class="o">--</span><span class="n">D</span><span class="o">--------|-&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">combineLatest</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="o">----</span><span class="mi">1</span><span class="n">A</span><span class="o">-</span><span class="mi">2</span><span class="n">A</span><span class="o">-</span><span class="mi">2</span><span class="n">B</span><span class="o">--</span><span class="mi">2</span><span class="n">C</span><span class="o">-</span><span class="mi">2</span><span class="n">D</span><span class="o">-</span><span class="mi">3</span><span class="n">D</span><span class="o">-</span><span class="mi">4</span><span class="n">D</span><span class="o">-|-&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可见，它正好试用我们验证密码的场景，接下来就是简单的验证逻辑，如此我们便实现了重复密码的验证过程。现在让我们来看一下稍微复杂一点的逻辑，验证用户名：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">usernameValidation</span> <span class="o">=</span> <span class="n">username</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="p">[</span><span class="kr">unowned</span> <span class="nb">self</span><span class="p">]</span> <span class="n">username</span> <span class="o">-&gt;</span> <span class="n">Observable</span><span class="o">&lt;</span><span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span><span class="o">&gt;</span> <span class="k">in</span>
+</span><span class='line'>        <span class="k">if</span> <span class="n">username</span><span class="p">.</span><span class="n">characters</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">just</span><span class="p">((</span><span class="nb">false</span><span class="p">,</span> <span class="nb">nil</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="n">username</span><span class="p">.</span><span class="n">rangeOfCharacterFromSet</span><span class="p">(</span><span class="bp">NSCharacterSet</span><span class="p">.</span><span class="n">alphanumericCharacterSet</span><span class="p">().</span><span class="n">invertedSet</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">just</span><span class="p">((</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Username can only contain numbers or digits&quot;</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">let</span> <span class="n">loadingValue</span> <span class="o">=</span> <span class="p">(</span><span class="nl">valid</span><span class="p">:</span> <span class="nb">nil</span> <span class="kt">as</span> <span class="n">Bool</span><span class="o">?</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="s">&quot;Checking availabilty ...&quot;</span> <span class="kt">as</span> <span class="n">String</span><span class="o">?</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">API</span><span class="p">.</span><span class="n">usernameAvailable</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="n">available</span> <span class="k">in</span>
+</span><span class='line'>                <span class="k">if</span> <span class="n">available</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="s">&quot;Username available&quot;</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="s">&quot;Username already taken&quot;</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">startWith</span><span class="p">(</span><span class="n">loadingValue</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">switchLatest</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">shareReplay</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们来具体分析一下整个过程，首先用户名的验证分为两个部分，一个本地合法性验证，另一个是远程的可用性验证，因为服务器验证涉及到异步，所以其验证结果本身就是一个流（拥有初始状态，结果状态）。然后我们来想象一下，当用户在输入用户名的时候，每当用户键入一个值，我们都需要去验证，但因为服务器验证是异步的，所以当用户键入下一字母的时候，前面的验证结果其实是没有用了，那我们应该怎么处理呢？switchLatest函数是我们的救星，下面是其官方文档的示意图：</p>
+
+<p><img src="http://sherlockyao.com/images/20160216/switchlatest.png" title="" alt="File Inspector" /></p>
+
+<p>简言之，switchLatest所操作的流其原本的每个值都是一个单独的流，经过处理后，它变成了一个单一的流，其中的每个值都是原本流当中最新流中的最新值。这就完美地解决了我们的问题，每当新的验证触发后，前一个验证流的值虽然还会产生，但是我们已经不去关心它了，从而不会对我们的结果产生影响。最后让我们来处理提交按钮的禁用逻辑，当我们用流的思路去考虑问题时，将发现这个需求简直太简单了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">signupEnabled</span> <span class="o">=</span> <span class="n">combineLatest</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">usernameValidation</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">passwordValidation</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">repeatPasswordValidation</span>
+</span><span class='line'>    <span class="p">)</span> <span class="p">{</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">repeatPassword</span> <span class="k">in</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="n">username</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">repeatPassword</span><span class="p">.</span><span class="n">valid</span> <span class="o">??</span> <span class="nb">false</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">signupEnabled</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">subscribeNext</span> <span class="p">{</span> <span class="p">[</span><span class="kr">unowned</span> <span class="nb">self</span><span class="p">]</span> <span class="n">valid</span>  <span class="k">in</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">submitButton</span><span class="p">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">valid</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">submitButton</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">?</span> <span class="mf">1.0</span> <span class="o">:</span> <span class="mf">0.5</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">addDisposableTo</span><span class="p">(</span><span class="n">disposeBag</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相信大家现在一看这个代码就已经知道它的意思了，所以就不再赘述了。响应式编程提供给了我们一种完全不同的思维方式，即使不去实际应用，去学习它本身就是一个很有意义的事情，况且在交互越来越复杂的时代，它更是提供了一种清晰的解决方案。我自己还谈不上入门，但已跃跃欲试要好好专研一番，希望此文能给想入门的同道们一些帮助。</p>
+
+<p>另附上<a href="https://github.com/sherlockyao/RxSwiftPractise">示例代码地址</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[响应式编程入门（上）]]></title>
@@ -298,7 +647,7 @@
 
 <p>看这个现象，数据是没有丢失的，所以应该是原来的对应关系没有顺利转化到新的这个多对多关系表中。回想整个迁移过程，我意识到一点，就是我把 Book 中原来的 author 属性改名成了 authors，这在逻辑上讲是理所当然的，但程序可没那么智能，所以应该是这里出了问题。</p>
 
-<p>解决方法：在Xcode中选择 authors 这个关系，然后在右边的 Inspector 中找到 &ldquo;Renaming ID&rdquo; 这个选项，在里面填上 &ldquo;author&#8221;，这样程序才能知道这个属性是从原来的 author 属性改名而来，数据当然也能成功迁移了。果然再次把应用回退到老版本后安装新版本，对应关系顺利地展示了出来。</p>
+<p>解决方法：在Xcode中选择 authors 这个关系，然后在右边的 Inspector 中找到 &ldquo;Renaming ID&rdquo; 这个选项，在里面填上 &ldquo;author"，这样程序才能知道这个属性是从原来的 author 属性改名而来，数据当然也能成功迁移了。果然再次把应用回退到老版本后安装新版本，对应关系顺利地展示了出来。</p>
 ]]></content>
   </entry>
   
@@ -328,7 +677,7 @@
 
 <p>此时，如果我们给它设置一个水平priority是750的 Content Hugging 属性，那我们将看到它的实际布局会变成这样：</p>
 
-<blockquote><p>|&mdash;&mdash;60&mdash;&ndash;[Button]&mdash;-60&mdash;&mdash;|</p></blockquote>
+<blockquote><p>|&mdash;-60&mdash;[Button]&mdash;60&mdash;-|</p></blockquote>
 
 <p>但是如果这个 Content Hugging 属性的priority是小于500的，那我们看到的效果和初始状态是一样的：</p>
 
@@ -1087,9 +1436,9 @@
 <p>可以发现，Presenter就是承担了一个中间者的角色，它才是传统意义上MVC机构中的C(Controller)。其中有一点要注意的是，对应ViewInterface的reference，我们采用了weak的定义来防止Strong reference cycle ，在我自己的设计当中，我偏向于如下的reference关系：</p>
 
 <ul>
-<li>View &mdash;strong-> Presenter</li>
-<li>Presenter &mdash;strong-> Interactor</li>
-<li>Presenter &mdash;weak-> View</li>
+<li>View &ndash;strong-> Presenter</li>
+<li>Presenter &ndash;strong-> Interactor</li>
+<li>Presenter &ndash;weak-> View</li>
 </ul>
 
 
@@ -1207,7 +1556,7 @@
 
 <p>这个假想的App功能非常简单，类似一个简化版的Siri，用户在界面上输入一些文本后提交，应用就会返回一些回复的信息给你。首先在开始前我想说明一点，VIPER架构的核心思想就是把传统庞大的应用结构解构成View, interactor, Presenter, Entity, Routing五个部分，既然是做了解耦合，那各个部分直接应该做到相应的灵活和可重用，这点非常重要，我们在设计View，Presenter和Interactor时要时刻记住这一点。在objc.io原文章的示例代码中，这点做的就不够好，而在个人的实践中就更容易陷在这里，你会发现你给一个特定的View写了一个Presenter然后这个Presenter用到了一个特定的Interactor，这三个文件所做的就是应用中的一个特定的业务逻辑，所以也没办法被其他地方重用，其结果就是你只是简单的把原来属于一个ViewController的代码分散放到三个类中了，本质上却没有解耦合。请大家在看下面内容的时候时刻牢记这一点。同时示例我只提供了设计思路，并不提供实现的代码，因为示例的目的就是为了帮助理解VIPER的设计思路。</p>
 
-<p>首先我们从View入手，界面上其实很简单：用户输入文本 &ndash;> 提交 &ndash;> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
+<p>首先我们从View入手，界面上其实很简单：用户输入文本 -> 提交 -> 显示回应文本。我们想要的presenter对view的操作会有 1)显示/隐藏等待框 2)显示回应的文本两个主要的部分，接下来我们就要解耦合了。等待框和文本显示其实是不相关的两部分逻辑，所以我们的View Interface也应该要分开来，如下所示：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1402,38 +1751,6 @@
 <p>笔者此时运行pod命令时，发现pod不是最新版本，所以升级到了0.32.1<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hello Blogging]]></title>
-    <link href="http://sherlockyao.com/blog/2014/05/23/hello-blogging/"/>
-    <updated>2014-05-23T15:30:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2014/05/23/hello-blogging</id>
-    <content type="html"><![CDATA[<p>很久以来都没有认真写过技术博客，今天在学习Clojure的时候又用起了Vim，却突然发现好多以前熟知的操作因为疏于练习而忘记了，意识到平时记录些Notes的重要性，这才翻出了早先就配置好但一直荒废的Git Pages，写下这些文字。作为一个懒惰的人，我可能写完这篇便就半途而废了，但仍抱有对持久写作的一丝希望，作为开篇，就简单说明一下如何建立自己的github.io blog。</p>
-
-<p>搭建的文档官方已经很完善了，这里就只给出链接，另外我用的是Octopress，所以文档是它家的，至于Markdown的话找了一篇简洁明了的：</p>
-
-<ul>
-<li><a href="https://pages.github.com/">Github Pages</a></li>
-<li><a href="http://octopress.org/docs/">Octopress</a></li>
-<li><a href="http://jianshu.io/p/q81RER">Markdown</a></li>
-</ul>
-
-
-<p>这里再赘述一下创建一篇博文的简单流程，以作备忘用：</p>
-
-<ol>
-<li><p>用下面的命令生成一篇新文章<br/>
-<code>rake new_post["Create A Post With Given Title"]</code></p></li>
-<li><p>书写完毕后，可以用以下命令预览<br/>
-<code>rake preview</code> or <code>rake watch</code></p></li>
-<li><p>确定要发布的时候就使用下面命令，它会将页面生成到source目录下同时push到master分支<br/>
-<code>rake generate</code> and <code>rake deploy</code></p></li>
-<li><p>最后别忘了把source分支的修改提交并push到git上<br/>
-<code>git commit -m'msg'</code> and <code>git push origin source</code></p></li>
-</ol>
 
 ]]></content>
   </entry>
