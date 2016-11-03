@@ -41,14 +41,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -131,7 +130,7 @@
 </span><span class='line'>
 </span><span class='line'>script
 </span><span class='line'>        <span class="nb">cd</span> /var/local/sites/myapp
-</span><span class='line'>        <span class="nb">exec </span>sudo -u node <span class="nv">NODE_ENV</span><span class="o">=</span>production /usr/local/bin/node /var/local/sites/myapp/express.js &gt;&gt; /var/log/myapp.log 2&gt;&amp;1
+</span><span class='line'>        <span class="nb">exec </span>sudo -u node <span class="nv">NODE_ENV</span><span class="o">=</span>production /usr/local/bin/node /var/local/sites/myapp/express.js &gt;&gt; /var/log/myapp.log 2&gt;<span class="p">&amp;</span>1
 </span><span class='line'>end script
 </span></code></pre></td></tr></table></div></figure>
 
@@ -182,23 +181,23 @@
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#添加完成后用&quot;sudo service nginx restart&quot;来重启nginx</span>
 </span><span class='line'>
 </span><span class='line'>upstream myapp <span class="o">{</span>
-</span><span class='line'>    server 127.0.0.1:3000;
+</span><span class='line'>    server 127.0.0.1:3000<span class="p">;</span>
 </span><span class='line'><span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>server <span class="o">{</span>
-</span><span class='line'>    listen 80;
-</span><span class='line'>    server_name myapp.com; <span class="c">#这里写上你自己需要的域名或ip</span>
-</span><span class='line'>    access_log /var/log/nginx/myapp.log;
+</span><span class='line'>    listen 80<span class="p">;</span>
+</span><span class='line'>    server_name myapp.com<span class="p">;</span> <span class="c">#这里写上你自己需要的域名或ip</span>
+</span><span class='line'>    access_log /var/log/nginx/myapp.log<span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="c"># pass the request to the node.js server with the correct headers and much more can be added, see nginx config options</span>
 </span><span class='line'>    location / <span class="o">{</span>
-</span><span class='line'>      proxy_set_header X-Real-IP <span class="nv">$remote_addr</span>;
-</span><span class='line'>      proxy_set_header X-Forwarded-For <span class="nv">$proxy_add_x_forwarded_for</span>;
-</span><span class='line'>      proxy_set_header Host <span class="nv">$http_host</span>;
-</span><span class='line'>      proxy_set_header X-NginX-Proxy <span class="nb">true</span>;
+</span><span class='line'>      proxy_set_header X-Real-IP <span class="nv">$remote_addr</span><span class="p">;</span>
+</span><span class='line'>      proxy_set_header X-Forwarded-For <span class="nv">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+</span><span class='line'>      proxy_set_header Host <span class="nv">$http_host</span><span class="p">;</span>
+</span><span class='line'>      proxy_set_header X-NginX-Proxy <span class="nb">true</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>      proxy_pass http://myapp/;
-</span><span class='line'>      proxy_redirect off;
+</span><span class='line'>      proxy_pass http://myapp/<span class="p">;</span>
+</span><span class='line'>      proxy_redirect off<span class="p">;</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'> <span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -284,16 +283,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -377,6 +374,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>

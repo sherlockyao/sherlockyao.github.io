@@ -45,7 +45,7 @@ body > header {
       float:left;
       display: inline;
       margin-top: 5%;
-      
+
       div.spacer {
         height: 7px;
         border-left: 2px solid $nav-bgcolor;      
@@ -87,19 +87,18 @@ body > header {
 }
 
 div.social-icons {
-  display: inline;
+  text-align:center;
   a {
     white-space: normal;
   }
   a:hover {
     opacity: 0.75;
   }
-  img {
-    width: 40px;
-    border: none;
-    border-radius: 0;
-    -webkit-box-shadow: rgba(0, 0, 0, 0) 0 0px;
-    -moz-box-shadow: rgba(0, 0, 0, 0) 0 0px;
+  a:visited {
+    color: black;
+  }
+  a > i {
+    padding: 5px;
   }
 }
 
