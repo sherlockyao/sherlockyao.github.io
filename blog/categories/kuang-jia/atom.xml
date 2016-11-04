@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 框架 | 姚翔的部落格]]></title>
+  <link href="http://sherlockyao.com/blog/categories/kuang-jia/atom.xml" rel="self"/>
+  <link href="http://sherlockyao.com/"/>
+  <updated>2016-11-04T15:38:02+08:00</updated>
+  <id>http://sherlockyao.com/</id>
+  <author>
+    <name><![CDATA[Sherlock Yao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[更轻松地页面跳转，Wireframe框架（上）]]></title>
+    <link href="http://sherlockyao.com/blog/2016/11/04/wireframe-framework/"/>
+    <updated>2016-11-04T14:05:47+08:00</updated>
+    <id>http://sherlockyao.com/blog/2016/11/04/wireframe-framework</id>
+    <content type="html"><![CDATA[<p>笔者也已经写过不少的app了，在每个app的开发过程中，一个亘古不变的需求就是页面之间的跳转。虽然这是个非常不起眼的功能，有时候你简单的一行 pushViewController:XXX 代码就搞定了，但它也有着大学问。</p>
+
+<p>试想这样一个场景：项目初期，需求很简单，A界面中点击某个按钮需要跳转到B，所以在按钮点击事件中，我们用代码初始化B的实例，然后调用对应的跳转方法实现了该功能；然后新需求来了，有了一个新的C界面，也需要跳转到B，所以我们就拷贝了相同的代码到C里面，实现需求；迭代还在继续，B界面的内容需要根据入口的不同有一些细节上的不同，所以我们给B添加了初始化参数，然后A和C通过传递不同的参数值来定制B；UI的改版也接踵而来，进入B界面的时候需要添加过渡动画效果，所以我们编写了对应的transition代码，在A和C的入口处添加了相同的动画配置代码；代码越来越多，leader说需要重构一下，B要重命名，传参方式也要改一下，于是我们开始重构，A和C的入口代码也进行了相应修改，但为了保证能覆盖修改到所有调用B的地方，我们还不停search，思考各种使用到的case，但还是不能保证是否都改掉了。</p>
+
+<p>上面的场景在平常的的开发过程中是很普遍的，可见跳转逻辑因为其耦合强的关系导致代码维护成本很高。通常遇到这种情况，我们会把重复的部分抽取出来，包装成对应的模块来减小耦合，但是我们始终没有一套框架性的东西来整体解决这个问题，更多的只是具体问题具体方案解决，所以不是很便利。以前笔者在研究VIPER架构的时候，就对里面Routing的wireframe概念很感兴趣，它给解决这种跳转的问题带来了一个很好的思路，经过多次实践，笔者整理出了一套自己的解决方案，所以把它单独抽取出来作为一个小框架分享出来，希望可以帮助大家能更轻松地维护页面跳转的逻辑。<a href="https://github.com/sherlockyao/SYWireframe">项目Github链接</a></p>
+
+<p>框架的基本思想很简单：把app里面所有页面之间的跳转关系都抽取出来，统一交由wireframe处理，页面之间不再彼此知道，从而减轻了耦合，减少需求改动时的维护成本。举例来说：传统的方式下，A界面点击一个按钮需要跳转到B，那么A需要知道B这个类的定义，要负责去初始化它，还需要知道当前所在的页面结构，从而决定用什么样的方式去展示B(比如是用push还是present)。采用了wireframe框架后，A只需要调用下面一行代码来完成跳转：</p>
+
+<pre><code class="swift">
+Wireframe.sharedWireframe.navigateTo(port: .detail, gate: .product, from: self)
+</code></pre>
+
+<p>我们把跳转点换成了一个抽象的概念：Port和Gate。Port和Gate都只是简单的String值，用户可以根据自己App的内容来定义，通常来说，Port可以定义为广义功能类型，Gate定义成具体的业务功能。以上面这个代码为例，它的意思就是告诉wirefraem：我现在需要跳转了，要跳转到一个detail类型的界面，具体的内容是product，接下来就交由wireframe去完成所有的工作。那么wireframe是怎么完成这个跳转的呢，它大致的步骤如下：</p>
+
+<ol>
+<li>通过配置文件找到对于A来说，对应的detail-product功能点的view controller是哪个，比如找到了B</li>
+<li>初始化B，如果有传递参数，则把对应的参数也配置到B中去</li>
+<li>通过配置文件找到此次跳转需要的跳转方式</li>
+<li>如果需要自定义transition方式，则配置对应效果</li>
+<li>执行跳转代码</li>
+</ol>
+
+
+<p>上面的步骤中，提到了配置文件，它是个什么东西呢？它其实是一个.plist文件，是框架的使用者用于配置整个app中页面关系的文件，wireframe通过读取该文件就能知道所有页面之间的关系，它的内容其实非常简单，我们来看一下示例项目中所带配置文件内容：</p>
+
+<p><img src="%20/images/20161104/wireframe.png" title="" alt="File Inspector" /></p>
+
+<p>整个文件分两个部分：Decodes 和 Destinations</p>
+
+<ul>
+<li><p>Decodes是配置view controller的class和代号(code)之间的关系的，同时还配置了如何实例化该view controller的方式(builder)</p></li>
+<li><p>Destinations则是配置页面跳转的关系的，同时还配置了跳转的方式(navigator)</p></li>
+</ul>
+
+
+<p>还是以最前面的那行代码为例，我们来讲解一下具体的流程：</p>
+
+<ol>
+<li>当HomeViewController调用了对应的跳转方法后，wireframe先通过decodes部分找到了它对应的code是“Home”</li>
+<li>把port和gate同code拼接起来，组成跳转的key，也就是："Home-Detail-Product"</li>
+<li>wireframe通过Destinations部分找到了key所对应的target code："Product"，也就是要跳转到的页面的code</li>
+<li>wireframe又通过decodes找到了Product对应的初始化方式(builder)：product</li>
+<li>它通过该builder初始化了对应的view controller（builder是什么将在下期介绍）</li>
+<li>配置中本次跳转对应的跳转方式是(navigator)：navigation-wrap（navigator是什么将在下期介绍）</li>
+<li>Wireframe最终采用对应的跳转方式完成了跳转</li>
+</ol>
+
+
+<p>可见，Wireframe完成了所有原来耦合部分的工作，同时通过配置文件的方式用户可以很容易地修改跳转关系和方式。而对于页面A来说，它根本不需要知道B的存在，它只需要知道我要跳转到一个什么功能点。</p>
+
+<p>目前这个框架刚完成了第一个版本，完全用swift编写，相信还有很大改进空间。如果大家感兴趣，可以试用一下，里面也带来sample项目可帮助大家理解，希望这个小工具能够帮助到大家。<a href="https://github.com/sherlockyao/SYWireframe">项目Github链接</a></p>
+
+<p>下期将具体说明一下builder, navigator以及transition的定义和使用方法。</p>
+]]></content>
+  </entry>
+  
+</feed>
