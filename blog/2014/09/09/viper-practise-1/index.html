@@ -41,14 +41,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -105,17 +104,17 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 用于显示和隐藏等待框</span>
-</span><span class='line'><span class="k">@protocol</span> <span class="nc">ProgressViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">ProgressViewInterface</span> <span class="o">&lt;</span><span class="bp">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">beginProgress</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">endProgress</span><span class="p">;</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">endProgress</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@end</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1">// 用于显示回应文本</span>
-</span><span class='line'><span class="k">@protocol</span> <span class="nc">MessageBoardViewInterface</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">MessageBoardViewInterface</span> <span class="o">&lt;</span><span class="bp">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">showMessage:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span><span class="p">;</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">showMessage</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">message</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@end</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -138,19 +137,19 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">AIRobotInteractor</span> : <span class="nc">NSObject</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">AIRobotInteractor</span> : <span class="bp">NSObject</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">CAIRobotInteractorDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="p">;</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">weak</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">CAIRobotInteractorDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">askQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">question</span><span class="p">;</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">askQuestion:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">question</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@end</span>
 </span><span class='line'>
 </span><span class='line'>
-</span><span class='line'><span class="k">@protocol</span> <span class="nc">AIRobotInteractorDelegate</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">@protocol</span> <span class="nc">AIRobotInteractorDelegate</span> <span class="o">&lt;</span><span class="bp">NSObject</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@optional</span>
-</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">aiRobotInteractor:</span><span class="p">(</span><span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="p">)</span><span class="n">aiRobotInteractor</span> <span class="nl">didResponseToQuestion:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">question</span> <span class="nl">response:</span><span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">response</span><span class="p">;</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">aiRobotInteractor</span><span class="p">:(</span><span class="n">AIRobotInteractor</span> <span class="o">*</span><span class="p">)</span><span class="n">aiRobotInteractor</span> <span class="nl">didResponseToQuestion</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">question</span> <span class="nl">response</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">response</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@end</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -227,16 +226,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -320,6 +317,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>

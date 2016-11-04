@@ -41,14 +41,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -102,9 +101,9 @@
 </span><span class='line'>
 </span><span class='line'><span class="k">@implementation</span> <span class="nc">StoreInfoCell</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">@end</span>
@@ -118,10 +117,10 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData</span><span class="p">:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -140,15 +139,15 @@
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="n">DISPATCH_QUEUE_PRIORITY_DEFAULT</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">^</span><span class="p">{</span>
-</span><span class='line'>      <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
+</span><span class='line'>      <span class="bp">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData</span><span class="p">:</span><span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">];</span>
 </span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-</span><span class='line'>          <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>          <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
 </span><span class='line'>      <span class="p">});</span>
 </span><span class='line'>  <span class="p">});</span>
 </span><span class='line'><span class="p">}</span>
@@ -173,18 +172,18 @@
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
 </span><span class='line'>  <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="n">DISPATCH_QUEUE_PRIORITY_DEFAULT</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">^</span><span class="p">{</span>
 </span><span class='line'>      <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
-</span><span class='line'>      <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>      <span class="bp">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData</span><span class="p">:</span><span class="n">data</span><span class="p">];</span>
 </span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-</span><span class='line'>          <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>              <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>          <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>              <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
 </span><span class='line'>          <span class="p">}</span>
 </span><span class='line'>      <span class="p">});</span>
 </span><span class='line'>  <span class="p">});</span>
@@ -221,32 +220,32 @@
 <span class='line-number'>25</span>
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="n">asyncDisplayHistogramImage</span><span class="p">];</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span> <span class="n">asyncDisplayHistogramImage</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'>  <span class="n">__weak</span> <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
+</span><span class='line'>  <span class="bp">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">__weak</span> <span class="bp">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
 </span><span class='line'>    <span class="k">if</span> <span class="p">([</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">])</span> <span class="p">{</span>
 </span><span class='line'>      <span class="k">return</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>    <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="bp">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData</span><span class="p">:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
 </span><span class='line'>      <span class="p">});</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>  <span class="p">}];</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation:</span><span class="n">operation</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation</span><span class="p">:</span><span class="n">operation</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -291,42 +290,42 @@
 <span class='line-number'>36</span>
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">displayStoreInfo:</span><span class="p">(</span><span class="n">StoreInfo</span> <span class="o">*</span><span class="p">)</span><span class="nv">storeInfo</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">addressLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">address</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="n">cancelPreviousOperations</span><span class="p">];</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span> <span class="nl">performSelector:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">withObject:</span><span class="nb">nil</span> <span class="nl">afterDelay:</span><span class="mf">0.3</span><span class="p">];</span>
+</span><span class='line'>  <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span> <span class="n">cancelPreviousOperations</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span> <span class="nl">performSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">withObject</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">afterDelay</span><span class="p">:</span><span class="mf">0.3</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'>  <span class="n">__weak</span> <span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">asyncDisplayHistogramImage</span> <span class="p">{</span>
+</span><span class='line'>  <span class="bp">NSBlockOperation</span> <span class="o">*</span><span class="n">operation</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSBlockOperation</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">__weak</span> <span class="bp">NSBlockOperation</span> <span class="o">*</span><span class="n">weakOperation</span> <span class="o">=</span> <span class="n">operation</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">operation</span> <span class="nl">addExecutionBlock</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
 </span><span class='line'>    <span class="k">if</span> <span class="p">([</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">])</span> <span class="p">{</span>
 </span><span class='line'>      <span class="k">return</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>    <span class="n">TrafficData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">storeInfo</span><span class="p">.</span><span class="n">trafficData</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData:</span><span class="n">data</span><span class="p">];</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="n">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="bp">UIImage</span> <span class="o">*</span><span class="n">histogramImage</span> <span class="o">=</span> <span class="p">[</span><span class="n">HistogramTool</span> <span class="nl">generateImageForTrafficData</span><span class="p">:</span><span class="n">data</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">weakOperation</span> <span class="n">isCancelled</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">data</span><span class="p">.</span><span class="kt">id</span> <span class="o">==</span> <span class="nb">self</span><span class="p">.</span><span class="n">trafficData</span><span class="p">.</span><span class="kt">id</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">histogramImageView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">histogramImage</span><span class="p">;</span>
 </span><span class='line'>      <span class="p">});</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>  <span class="p">}];</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation:</span><span class="n">operation</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">queue</span> <span class="nl">addOperation</span><span class="p">:</span><span class="n">operation</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">cancelPreviousOperations</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">NSObject</span> <span class="nl">cancelPreviousPerformRequestsWithTarget:</span><span class="n">self</span> <span class="nl">selector:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">object:</span><span class="nb">nil</span><span class="p">];</span>
-</span><span class='line'>  <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">cancelPreviousOperations</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">[</span><span class="bp">NSObject</span> <span class="nl">cancelPreviousPerformRequestsWithTarget</span><span class="p">:</span><span class="nb">self</span> <span class="nl">selector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">asyncDisplayHistogramImage</span><span class="p">)</span> <span class="nl">object</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">queue</span> <span class="n">cancelAllOperations</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1">// 然后在对于的TableView Delegate中也加上取消操作</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">tableView:</span><span class="p">(</span><span class="n">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span> <span class="nf">didEndDisplayingCell:</span><span class="p">(</span><span class="n">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nv">cell</span> <span class="nf">forRowAtIndexPath:</span><span class="p">(</span><span class="n">NSIndexPath</span><span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span> <span class="p">{</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">tableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span> <span class="nf">didEndDisplayingCell:</span><span class="p">(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nv">cell</span> <span class="nf">forRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span><span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span> <span class="p">{</span>
 </span><span class='line'>  <span class="p">[</span><span class="n">cell</span> <span class="n">cancelPreviousOperations</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -401,16 +400,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -494,6 +491,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>

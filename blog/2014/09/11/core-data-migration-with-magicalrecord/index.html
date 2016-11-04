@@ -41,14 +41,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -91,7 +90,7 @@
 <p>在这里插一句，如果你不关心用户以前存在数据库的数据是否丢失(就是这么拽)，只想确保任何时候都不会出错，那可以在配置MR前加上下面这句代码，它会确保在数据库文件和model文件不匹配的情况下直接删除数据：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setShouldDeleteStoreOnModelMismatch:</span><span class="n">YES</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setShouldDeleteStoreOnModelMismatch</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -99,22 +98,22 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSMutableDictionary</span> <span class="o">*</span><span class="n">sqliteOptions</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSMutableDictionary</span> <span class="n">dictionary</span><span class="p">];</span>
-</span><span class='line'><span class="p">[</span><span class="n">sqliteOptions</span> <span class="nl">setObject:</span><span class="s">@&quot;WAL&quot;</span> <span class="nl">forKey:</span><span class="s">@&quot;journal_mode&quot;</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="bp">NSMutableDictionary</span> <span class="o">*</span><span class="n">sqliteOptions</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableDictionary</span> <span class="n">dictionary</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">sqliteOptions</span> <span class="nl">setObject</span><span class="p">:</span><span class="s">@&quot;WAL&quot;</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;journal_mode&quot;</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>这里的journal_mode似乎指的是数据库记录下了操作日志文件，而这个文件在迁移的时候也会被同时迁移，但是这种模式下会报错(笔者没有深入看这部分的资料，所以阐述有可能有问题，请仅做参考)，总之一些帖子里面的意见就是改成DELETE值：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">sqliteOptions</span> <span class="nl">setObject:</span><span class="s">@&quot;DELETE&quot;</span> <span class="nl">forKey:</span><span class="s">@&quot;journal_mode&quot;</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">sqliteOptions</span> <span class="nl">setObject</span><span class="p">:</span><span class="s">@&quot;DELETE&quot;</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;journal_mode&quot;</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>我试过之后没起作用，说明问题不在这里(笔者下文说明了当时这个出错场景的原因，但是并没有回头去验证journal mode这个参数是否会造成migration失败，所以希望有兴趣的读者自己去深入研究)，那问题在哪里呢？在仔细读了MR的源代码后发现了一些端倪，我们一般使用MR时初始化只会写类似以下的这样一句代码：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setupCoreDataStackWithAutoMigratingSqliteStoreNamed:</span><span class="s">@&quot;XXX.sqlite&quot;</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setupCoreDataStackWithAutoMigratingSqliteStoreNamed</span><span class="p">:</span><span class="s">@&quot;XXX.sqlite&quot;</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -124,9 +123,9 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">+</span> <span class="p">(</span><span class="n">NSManagedObjectModel</span> <span class="o">*</span><span class="p">)</span> <span class="nf">MR_mergedObjectModelFromMainBundle</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">+</span> <span class="p">(</span><span class="bp">NSManagedObjectModel</span> <span class="o">*</span><span class="p">)</span> <span class="nf">MR_mergedObjectModelFromMainBundle</span><span class="p">;</span>
 </span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="p">[</span><span class="n">self</span> <span class="nl">mergedModelFromBundles:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">return</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">mergedModelFromBundles</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -137,10 +136,10 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setShouldAutoCreateManagedObjectModel:</span><span class="n">NO</span><span class="p">];</span>
-</span><span class='line'><span class="n">NSURL</span> <span class="o">*</span><span class="n">modelURL</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSBundle</span> <span class="n">mainBundle</span><span class="p">]</span> <span class="nl">URLForResource:</span><span class="s">@&quot;XXX&quot;</span> <span class="nl">withExtension:</span><span class="s">@&quot;momd&quot;</span><span class="p">];</span>
-</span><span class='line'><span class="n">NSManagedObjectModel</span> <span class="o">*</span><span class="n">objectModel</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSManagedObjectModel</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithContentsOfURL:</span><span class="n">modelURL</span><span class="p">];</span>
-</span><span class='line'><span class="p">[</span><span class="n">NSManagedObjectModel</span> <span class="nl">MR_setDefaultManagedObjectModel:</span><span class="n">objectModel</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">MagicalRecord</span> <span class="nl">setShouldAutoCreateManagedObjectModel</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+</span><span class='line'><span class="bp">NSURL</span> <span class="o">*</span><span class="n">modelURL</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSBundle</span> <span class="n">mainBundle</span><span class="p">]</span> <span class="nl">URLForResource</span><span class="p">:</span><span class="s">@&quot;XXX&quot;</span> <span class="nl">withExtension</span><span class="p">:</span><span class="s">@&quot;momd&quot;</span><span class="p">];</span>
+</span><span class='line'><span class="bp">NSManagedObjectModel</span> <span class="o">*</span><span class="n">objectModel</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSManagedObjectModel</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithContentsOfURL</span><span class="p">:</span><span class="n">modelURL</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="bp">NSManagedObjectModel</span> <span class="nl">MR_setDefaultManagedObjectModel</span><span class="p">:</span><span class="n">objectModel</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -213,16 +212,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -306,6 +303,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>

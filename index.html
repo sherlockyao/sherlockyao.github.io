@@ -41,14 +41,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div class="selected"> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -586,9 +585,9 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">__weak</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="n">weakSelf</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
-</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
-</span><span class='line'>    <span class="n">__strong</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">weakSelf</span><span class="p">)</span><span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">__weak</span> <span class="n">__typeof</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span><span class="n">weakSelf</span> <span class="o">=</span> <span class="nb">self</span><span class="p">;</span>
+</span><span class='line'><span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="k">__strong</span> <span class="n">__typeof</span><span class="p">(</span><span class="n">weakSelf</span><span class="p">)</span><span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">[</span><span class="n">strongSelf</span> <span class="n">doSomething</span><span class="p">];</span>
 </span><span class='line'><span class="p">}];</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -599,8 +598,8 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">UIView</span> <span class="nl">animateWithDuration:</span><span class="mf">0.2</span> <span class="nl">animations:</span><span class="o">^</span><span class="p">{</span>
-</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">myView</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="bp">UIView</span> <span class="nl">animateWithDuration</span><span class="p">:</span><span class="mf">0.2</span> <span class="nl">animations</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="nb">self</span><span class="p">.</span><span class="n">myView</span><span class="p">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
 </span><span class='line'><span class="p">}];</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -612,10 +611,10 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSBlockOperation</span> <span class="o">*</span><span class="n">op</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">NSBlockOperation</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">]</span> <span class="n">autorelease</span><span class="p">];</span>
-</span><span class='line'><span class="p">[</span><span class="n">op</span> <span class="nl">addExecutionBlock:</span><span class="o">^</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doMoreThing</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="bp">NSBlockOperation</span> <span class="o">*</span><span class="n">op</span> <span class="o">=</span> <span class="p">[[[</span><span class="bp">NSBlockOperation</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">]</span> <span class="n">autorelease</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">op</span> <span class="nl">addExecutionBlock</span><span class="p">:</span><span class="o">^</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="nb">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">[</span><span class="nb">self</span> <span class="n">doMoreThing</span><span class="p">];</span>
 </span><span class='line'><span class="p">}];</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -635,10 +634,10 @@
 <span class='line-number'>7</span>
 </pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;EXTScope.h&quot;</span>
 </span><span class='line'>
-</span><span class='line'><span class="err">@</span><span class="n">weakify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-</span><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock:</span><span class="o">^</span><span class="p">{</span>
-</span><span class='line'>    <span class="err">@</span><span class="n">strongify</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="n">doSomething</span><span class="p">];</span>
+</span><span class='line'><span class="p">@</span><span class="n">weakify</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+</span><span class='line'><span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">context</span> <span class="nl">performBlock</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="p">@</span><span class="n">strongify</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">[</span><span class="nb">self</span> <span class="n">doSomething</span><span class="p">];</span>
 </span><span class='line'><span class="p">}];</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -689,7 +688,7 @@
 <p>有时，我们会使用到table view自带的行分隔线样式，但是会遇到一个问题，就是当列表内没有cell时，或者cell数量不足以填充列表可见高度时，列表仍然会显示额外的分隔线。一个快速的解决方案是给table view设置一个空白的footer view：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">tableView</span><span class="p">.</span><span class="n">tableFooterView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFrame:</span><span class="n">CGRectZero</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">tableView</span><span class="p">.</span><span class="n">tableFooterView</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFrame</span><span class="p">:</span><span class="n">CGRectZero</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -709,16 +708,16 @@
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidLayoutSubviews</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">super</span> <span class="n">viewDidLayoutSubviews</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidLayoutSubviews</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="nb">super</span> <span class="n">viewDidLayoutSubviews</span><span class="p">];</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">self</span><span class="p">.</span><span class="n">hasFinishedLayoutView</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">hasFinishedLayoutView</span> <span class="o">=</span> <span class="n">YES</span><span class="p">;</span> <span class="c1">// 这里用一个flag来避免多次执行</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">self</span><span class="p">.</span><span class="n">hasFinishedLayoutView</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nb">self</span><span class="p">.</span><span class="n">hasFinishedLayoutView</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span> <span class="c1">// 这里用一个flag来避免多次执行</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">tableView</span> <span class="n">layoutIfNeeded</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="n">layoutIfNeeded</span><span class="p">];</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="n">NSIndexPath</span><span class="o">*</span> <span class="n">indexPath</span> <span class="o">=</span> <span class="p">...;</span> <span class="c1">// 定义要滚动到的位置</span>
-</span><span class='line'>        <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">scrollToRowAtIndexPath:</span><span class="n">indexPath</span> <span class="nl">atScrollPosition:</span><span class="n">UITableViewScrollPositionBottom</span> <span class="nl">animated:</span><span class="n">NO</span><span class="p">];</span>
+</span><span class='line'>        <span class="bp">NSIndexPath</span><span class="o">*</span> <span class="n">indexPath</span> <span class="o">=</span> <span class="p">...;</span> <span class="c1">// 定义要滚动到的位置</span>
+</span><span class='line'>        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">scrollToRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span> <span class="nl">atScrollPosition</span><span class="p">:</span><span class="n">UITableViewScrollPositionBottom</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -814,8 +813,8 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSArray</span><span class="o">*</span> <span class="n">activities</span> <span class="o">=</span> <span class="err">@</span><span class="p">[</span> <span class="p">[</span><span class="n">CustomActivity1</span> <span class="n">new</span><span class="p">],</span> <span class="p">[</span><span class="n">CustomActivity2</span> <span class="n">new</span><span class="p">]</span> <span class="p">];</span>
-</span><span class='line'><span class="p">[[</span><span class="n">UIActivityViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithActivityItems:</span><span class="n">activityItems</span> <span class="nl">applicationActivities:</span><span class="n">activities</span><span class="p">]</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="bp">NSArray</span><span class="o">*</span> <span class="n">activities</span> <span class="o">=</span> <span class="l">@[</span> <span class="p">[</span><span class="n">CustomActivity1</span> <span class="n">new</span><span class="p">],</span> <span class="p">[</span><span class="n">CustomActivity2</span> <span class="n">new</span><span class="p">]</span> <span class="l">]</span><span class="p">;</span>
+</span><span class='line'><span class="p">[[</span><span class="bp">UIActivityViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithActivityItems</span><span class="p">:</span><span class="n">activityItems</span> <span class="nl">applicationActivities</span><span class="p">:</span><span class="n">activities</span><span class="p">]</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -962,16 +961,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -1054,6 +1051,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>

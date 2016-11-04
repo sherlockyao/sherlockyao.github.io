@@ -42,14 +42,13 @@
 </div>
 
 <div class="header-right">
-  
-<ul class="main-navigation">
+  <ul class="main-navigation">
  <div> 
-  <li><a href="/">Blog</a></li></div><div class="spacer"></div>
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
      <div> 
-  <li><a href="/blog/archives">Archives</a></li></div>
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
 </ul>
-
+  
 </div>
 </header>
   <div id="main">
@@ -92,7 +91,7 @@
 <p>这个应该是最常见的需求了，同时也只需一行代码就可以实现：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setBarTintColor:</span><span class="p">[</span><span class="n">UIColor</span> <span class="n">yellowColor</span><span class="p">]];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="bp">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setBarTintColor</span><span class="p">:[</span><span class="bp">UIColor</span> <span class="n">yellowColor</span><span class="p">]];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -116,14 +115,14 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSShadow</span> <span class="o">*</span><span class="n">shadow</span> <span class="o">=</span> <span class="p">[</span><span class="n">NSShadow</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'><span class="n">shadow</span><span class="p">.</span><span class="n">shadowColor</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIColor</span> <span class="n">grayColor</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="bp">NSShadow</span> <span class="o">*</span><span class="n">shadow</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSShadow</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'><span class="n">shadow</span><span class="p">.</span><span class="n">shadowColor</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIColor</span> <span class="n">grayColor</span><span class="p">];</span>
 </span><span class='line'><span class="n">shadow</span><span class="p">.</span><span class="n">shadowOffset</span> <span class="o">=</span> <span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
-</span><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTitleTextAttributes:</span> <span class="err">@</span><span class="p">{</span>
-</span><span class='line'>  <span class="n">NSForegroundColorAttributeName</span> <span class="o">:</span> <span class="p">[</span><span class="n">UIColor</span> <span class="n">whiteColor</span><span class="p">],</span>
-</span><span class='line'>  <span class="n">NSShadowAttributeName</span> <span class="o">:</span> <span class="n">shadow</span><span class="p">,</span>
-</span><span class='line'>  <span class="n">NSFontAttributeName</span> <span class="o">:</span> <span class="p">[</span><span class="n">UIFont</span> <span class="nl">fontWithName:</span><span class="s">@&quot;HelveticaNeue&quot;</span> <span class="nl">size:</span><span class="mf">21.0</span><span class="p">]</span>
-</span><span class='line'><span class="p">}];</span>
+</span><span class='line'><span class="p">[[</span><span class="bp">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTitleTextAttributes</span><span class="p">:</span> <span class="l">@{</span>
+</span><span class='line'>  <span class="nl">NSForegroundColorAttributeName</span> <span class="p">:</span> <span class="p">[</span><span class="bp">UIColor</span> <span class="n">whiteColor</span><span class="p">],</span>
+</span><span class='line'>  <span class="nl">NSShadowAttributeName</span> <span class="p">:</span> <span class="n">shadow</span><span class="p">,</span>
+</span><span class='line'>  <span class="nl">NSFontAttributeName</span> <span class="p">:</span> <span class="p">[</span><span class="bp">UIFont</span> <span class="nl">fontWithName</span><span class="p">:</span><span class="s">@&quot;HelveticaNeue&quot;</span> <span class="nl">size</span><span class="p">:</span><span class="mf">21.0</span><span class="p">]</span>
+</span><span class='line'><span class="l">}</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -132,7 +131,7 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 这里的viewController就是对应的要替换标题的那个view controller，而不是navigation controller本身</span>
-</span><span class='line'><span class="n">viewController</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">titleView</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UIImageView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;title&quot;</span><span class="p">]];</span>
+</span><span class='line'><span class="n">viewController</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">titleView</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIImageView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithImage</span><span class="p">:[</span><span class="bp">UIImage</span> <span class="nl">imageNamed</span><span class="p">:</span><span class="s">@&quot;title&quot;</span><span class="p">]];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -141,7 +140,7 @@
 <p>我们可以通过设置tintColor来实现，要注意的是，这个颜色会同时影响到所有按钮上的文字和图片：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="n">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTintColor:</span><span class="p">[</span><span class="n">UIColor</span> <span class="n">whiteColor</span><span class="p">]];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[[</span><span class="bp">UINavigationBar</span> <span class="n">appearance</span><span class="p">]</span> <span class="nl">setTintColor</span><span class="p">:[</span><span class="bp">UIColor</span> <span class="n">whiteColor</span><span class="p">]];</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -152,9 +151,9 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIBarButtonItem</span> <span class="o">*</span><span class="n">markItem</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBarButtonItem</span> <span class="nl">barItemWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;mark&quot;</span><span class="p">]</span> <span class="nl">selectedImage:</span><span class="nb">nil</span> <span class="nl">size:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target:</span><span class="n">self</span> <span class="nl">action:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">markButtonClicked:</span><span class="p">)];</span>
-</span><span class='line'><span class="n">UIBarButtonItem</span> <span class="o">*</span><span class="n">starItem</span> <span class="o">=</span> <span class="p">[</span><span class="n">UIBarButtonItem</span> <span class="nl">barItemWithImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;star&quot;</span><span class="p">]</span> <span class="nl">selectedImage:</span><span class="p">[</span><span class="n">UIImage</span> <span class="nl">imageNamed:</span><span class="s">@&quot;star_selected&quot;</span><span class="p">]</span> <span class="nl">size:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target:</span><span class="n">self</span> <span class="nl">action:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">starButtonClicked:</span><span class="p">)];</span>
-</span><span class='line'><span class="n">self</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">rightBarButtonItems</span> <span class="o">=</span> <span class="err">@</span><span class="p">[</span><span class="n">starItem</span><span class="p">,</span> <span class="n">markItem</span><span class="p">];</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="bp">UIBarButtonItem</span> <span class="o">*</span><span class="n">markItem</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIBarButtonItem</span> <span class="nl">barItemWithImage</span><span class="p">:[</span><span class="bp">UIImage</span> <span class="nl">imageNamed</span><span class="p">:</span><span class="s">@&quot;mark&quot;</span><span class="p">]</span> <span class="nl">selectedImage</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">size</span><span class="p">:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target</span><span class="p">:</span><span class="nb">self</span> <span class="nl">action</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">markButtonClicked</span><span class="p">:)];</span>
+</span><span class='line'><span class="bp">UIBarButtonItem</span> <span class="o">*</span><span class="n">starItem</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIBarButtonItem</span> <span class="nl">barItemWithImage</span><span class="p">:[</span><span class="bp">UIImage</span> <span class="nl">imageNamed</span><span class="p">:</span><span class="s">@&quot;star&quot;</span><span class="p">]</span> <span class="nl">selectedImage</span><span class="p">:[</span><span class="bp">UIImage</span> <span class="nl">imageNamed</span><span class="p">:</span><span class="s">@&quot;star_selected&quot;</span><span class="p">]</span> <span class="nl">size</span><span class="p">:</span><span class="n">CGSizeMake</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="nl">target</span><span class="p">:</span><span class="nb">self</span> <span class="nl">action</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">starButtonClicked</span><span class="p">:)];</span>
+</span><span class='line'><span class="nb">self</span><span class="p">.</span><span class="n">navigationItem</span><span class="p">.</span><span class="n">rightBarButtonItems</span> <span class="o">=</span> <span class="l">@[</span><span class="n">starItem</span><span class="p">,</span> <span class="n">markItem</span><span class="l">]</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 </div>
@@ -225,16 +224,14 @@
   <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
   <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
   <div class="social-icons">
-    <a href="/blog/archives"><img src="/images/archives.png" alt="Archives" /></a>
     
-  <a href="https://github.com/sherlockyao"><img src="/images/social/Github.png" alt="Github" /></a>
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
 
 
     
-  <a href="http://www.linkedin.com/in/yaosherlock"><img src="/images/social/LinkedIn.png" alt="LinkedIn" /></a>
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
 
 
-    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
   </div>
 </section>
 
@@ -318,6 +315,7 @@
 </div>
 
 <p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
 <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 </footer>
