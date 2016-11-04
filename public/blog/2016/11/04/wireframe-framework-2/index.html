@@ -1,0 +1,340 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>更轻松地页面跳转，Wireframe框架（下） - 姚翔的部落格</title>
+  <meta name="author" content="Sherlock Yao">
+
+  
+  <meta name="description" content="上篇我解释了Wireframe框架的大体思路和跳转逻辑，这次我具体说明一下里面的builder, navigator和transition的概念。 Builder Builder顾名思义就是用来实例化目标View Controller的工厂。在Wireframe中实例化View &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="姚翔的部落格" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+
+</head>
+
+<body   >
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">姚翔的部落格</a></h1>
+  
+  </hgroup>
+  
+</div>
+
+<div class="header-right">
+  <ul class="main-navigation">
+ <div> 
+  <li><a href="/index.html">Home</a></li></div><div class="spacer"></div>
+     <div> 
+  <li><a href="/blog/archives/index.html">Archives</a></li></div><div class="spacer"></div>
+</ul>
+  
+</div>
+</header>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">更轻松地页面跳转，Wireframe框架（下）</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-04T16:04:37+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>上篇我解释了Wireframe框架的大体思路和跳转逻辑，这次我具体说明一下里面的builder, navigator和transition的概念。</p>
+
+<h3>Builder</h3>
+
+<p>Builder顾名思义就是用来实例化目标View Controller的工厂。在Wireframe中实例化View Controller有两种方法：1）通过storyboard初始化 2）通过代码。下图是配置文件中相应的配置内容：</p>
+
+<p><img src="/images/20161104/decodes.png" title="" alt="File Inspector" /></p>
+
+<p>可见，如果View Controller被画在了storyboard中，那么只要提供对应的storyboard文件名称，以及对应的view controller id，那么wireframe会自动通过storyboard来实例化。如果要使用代码实例化(包括从xib文件加载页面)，那么就需要通过配置builder来实现。首先需要在配置文件中配置对应的builder code，然后通过调用wireframe实例的register方法去注册对应的builder即可，示例代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">builderName</span><span class="p">:</span> <span class="s">&quot;product&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">UIViewController</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">productViewController</span> <span class="o">=</span> <span class="n">ProductViewController</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">productViewController</span><span class="p">.</span><span class="n">productName</span> <span class="o">=</span> <span class="n">params</span><span class="o">?</span><span class="p">[</span><span class="n">WireframeParam</span><span class="p">.</span><span class="n">name</span><span class="p">.</span><span class="n">rawValue</span><span class="p">]</span> <span class="kt">as</span><span class="o">?</span> <span class="n">String</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">productViewController</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">builderName</span><span class="p">:</span> <span class="s">&quot;seller&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">UIViewController</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">SellerViewController</span><span class="p">(</span><span class="nl">nibName</span><span class="p">:</span> <span class="s">&quot;SellerViewController&quot;</span><span class="p">,</span> <span class="nl">bundle</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体的实例化方式，是根据你具体的业务逻辑需求来的，方法所传递的params参数，是页面跳转时所传的额外参数(optional)，你可以根据具体需要来定制目标view controller的初始化过程。目前框架只提供了一个简单的UIAlertController的默认builder。</p>
+
+<h3>Navigator</h3>
+
+<p>Navigator则是负责具体跳转的接口。它和Builder的使用方法类似，在配置文件中配置对应的name/code，然后通过register方法注册对应的navigator实现到wireframe中去。框架默认提供了7个常用的跳转方式，比如：present(Animated or Not Animated)，push(Animated or Not Animated)，如果app的跳转方式比较简单，那么默认的navigators就已经足够满足需求了。下面的代码演示了如果注册一个navigator，它的作用就是给目标view controller包上一个navigation controller再做跳转：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">navigatorName</span><span class="p">:</span> <span class="s">&quot;navigation-wrap&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">sourceViewController</span><span class="p">,</span> <span class="n">destinationViewController</span><span class="p">,</span> <span class="n">completion</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">navigationController</span> <span class="o">=</span> <span class="bp">UINavigationController</span><span class="p">(</span><span class="nl">rootViewController</span><span class="p">:</span> <span class="n">destinationViewController</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sourceViewController</span><span class="p">.</span><span class="n">present</span><span class="p">(</span><span class="n">navigationController</span><span class="p">,</span> <span class="nl">animated</span><span class="p">:</span> <span class="nb">false</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="n">completion</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Transition</h3>
+
+<p>有些时候，我们需要给跳转过程加特定的动画效果，这就需要我们用到类似UIViewControllerAnimatedTransitioning这样的技术，wireframe也提供了配置的方式，每个Wireframe实例有一个optional的transition接口变量，你可以设置成自己实现的transition接口，每当wireframe完成目标view controller的初始化后，就会调用对应的接口方法来配置需要的transition，你可以通过判断soure和destination的类型来选择对应的动画效果。</p>
+
+<p>目前transition这个配置的方式还不是很完美，会有很多类型判断的代码在里面，如果大家有好的建议欢迎给我留言：）</p>
+
+<p>最后要说的是，对于大型的项目而言，一个项目中可以有多个wireframe存在，每个wireframe负责某个模块内部的调度，然后再由一个总的wireframe来负责模块间的调度，这样可以使结构更清晰，可维护性更强。这个是框架的<a href="https://github.com/sherlockyao/SYWireframe">Github链接</a>，欢迎大家提供宝贵意见和建议。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sherlock Yao</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-04T16:04:37+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>, <a class='category' href='/blog/categories/navigation/'>navigation</a>, <a class='category' href='/blog/categories/route/'>route</a>, <a class='category' href='/blog/categories/swift/'>swift</a>, <a class='category' href='/blog/categories/wireframe/'>wireframe</a>, <a class='category' href='/blog/categories/kuang-jia/'>框架</a>, <a class='category' href='/blog/categories/tiao-zhuan/'>跳转</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/" data-via="" data-counturl="http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/11/04/wireframe-framework/" title="Previous Post: 更轻松地页面跳转，Wireframe框架（上）">&laquo; 更轻松地页面跳转，Wireframe框架（上）</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  <section>
+  <h1><a href="#">sherlockyao.com</a></h1>
+  <p>The other side of me, <a href="http://sherlockyao.lofter.com/">Sherlock Yao</a>.</p>
+  <p>To see what I'm working on, check out my GitHub page <a href="https://github.com/sherlockyao">here</a>.</p>
+  <div class="social-icons">
+    
+  <a href="https://github.com/sherlockyao"><i class="fa fa-github fa-3x"></i></a>
+
+
+    
+  <a href="http://www.linkedin.com/in/yaosherlock"><i class="fa fa-linkedin fa-3x"></i></a>
+
+
+  </div>
+</section>
+
+  <section>
+  <h1>Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/04/wireframe-framework-2/">更轻松地页面跳转，Wireframe框架（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/04/wireframe-framework/">更轻松地页面跳转，Wireframe框架（上）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/16/head-first-reactive-programming-2/">响应式编程入门（下）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/10/head-first-reactive-programming-1/">响应式编程入门（上）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/08/weakself-and-strongself-in-blocks/">使用Block时何时需要WeakSelf和StrongSelf?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/28/uitableview-tips/">iOS UITableView 使用小贴士</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/09/custom-uiactivity/">为 UIActivityViewController 添加自定义的 UIActivity 选项</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/hugging-vs-resistance/">Content Hugging vs. Compression Resistance</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/17/no-blocking-ui-cell-update/">iOS的UI并发处理方案</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/16/customize-navigation-bar-style/">自定义Navigation Bar样式</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/15/vim-swap/">Vim无法打开Swap文件的错误</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/14/set-up-rails-on-mac/">Mac上安装Ruby on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+    
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><div style="display:inline">
+    Copyright &copy; 2016
+
+    Sherlock Yao
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+<p>
+<span>Copyright &copy; 2016  Sherlock Yao -</span>
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
+</p>
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sherlockyao';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/';
+        var disqus_url = 'http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+</body>
+</html>

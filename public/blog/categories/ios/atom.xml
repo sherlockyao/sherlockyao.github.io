@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ios | 姚翔的部落格]]></title>
   <link href="http://sherlockyao.com/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://sherlockyao.com/"/>
-  <updated>2016-11-04T15:38:02+08:00</updated>
+  <updated>2016-11-04T16:43:32+08:00</updated>
   <id>http://sherlockyao.com/</id>
   <author>
     <name><![CDATA[Sherlock Yao]]></name>
@@ -12,6 +12,56 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[更轻松地页面跳转，Wireframe框架（下）]]></title>
+    <link href="http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/"/>
+    <updated>2016-11-04T16:04:37+08:00</updated>
+    <id>http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2</id>
+    <content type="html"><![CDATA[<p>上篇我解释了Wireframe框架的大体思路和跳转逻辑，这次我具体说明一下里面的builder, navigator和transition的概念。</p>
+
+<h3>Builder</h3>
+
+<p>Builder顾名思义就是用来实例化目标View Controller的工厂。在Wireframe中实例化View Controller有两种方法：1）通过storyboard初始化 2）通过代码。下图是配置文件中相应的配置内容：</p>
+
+<p><img src="%20/images/20161104/decodes.png" title="" alt="File Inspector" /></p>
+
+<p>可见，如果View Controller被画在了storyboard中，那么只要提供对应的storyboard文件名称，以及对应的view controller id，那么wireframe会自动通过storyboard来实例化。如果要使用代码实例化(包括从xib文件加载页面)，那么就需要通过配置builder来实现。首先需要在配置文件中配置对应的builder code，然后通过调用wireframe实例的register方法去注册对应的builder即可，示例代码如下：</p>
+
+<pre><code class="swift">
+register(builderName: "product") { (params) -&gt; UIViewController in
+    let productViewController = ProductViewController()
+    productViewController.productName = params?[WireframeParam.name.rawValue] as? String
+    return productViewController;
+}
+
+register(builderName: "seller") { (params) -&gt; UIViewController in
+    return SellerViewController(nibName: "SellerViewController", bundle: nil)
+}
+</code></pre>
+
+<p>具体的实例化方式，是根据你具体的业务逻辑需求来的，方法所传递的params参数，是页面跳转时所传的额外参数(optional)，你可以根据具体需要来定制目标view controller的初始化过程。目前框架只提供了一个简单的UIAlertController的默认builder。</p>
+
+<h3>Navigator</h3>
+
+<p>Navigator则是负责具体跳转的接口。它和Builder的使用方法类似，在配置文件中配置对应的name/code，然后通过register方法注册对应的navigator实现到wireframe中去。框架默认提供了7个常用的跳转方式，比如：present(Animated or Not Animated)，push(Animated or Not Animated)，如果app的跳转方式比较简单，那么默认的navigators就已经足够满足需求了。下面的代码演示了如果注册一个navigator，它的作用就是给目标view controller包上一个navigation controller再做跳转：</p>
+
+<pre><code class="swift">
+register(navigatorName: "navigation-wrap") { (sourceViewController, destinationViewController, completion) in
+    let navigationController = UINavigationController(rootViewController: destinationViewController)
+    sourceViewController.present(navigationController, animated: false, completion: completion)
+}
+</code></pre>
+
+<h3>Transition</h3>
+
+<p>有些时候，我们需要给跳转过程加特定的动画效果，这就需要我们用到类似UIViewControllerAnimatedTransitioning这样的技术，wireframe也提供了配置的方式，每个Wireframe实例有一个optional的transition接口变量，你可以设置成自己实现的transition接口，每当wireframe完成目标view controller的初始化后，就会调用对应的接口方法来配置需要的transition，你可以通过判断soure和destination的类型来选择对应的动画效果。</p>
+
+<p>目前transition这个配置的方式还不是很完美，会有很多类型判断的代码在里面，如果大家有好的建议欢迎给我留言：）</p>
+
+<p>最后要说的是，对于大型的项目而言，一个项目中可以有多个wireframe存在，每个wireframe负责某个模块内部的调度，然后再由一个总的wireframe来负责模块间的调度，这样可以使结构更清晰，可维护性更强。这个是框架的<a href="https://github.com/sherlockyao/SYWireframe">Github链接</a>，欢迎大家提供宝贵意见和建议。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[更轻松地页面跳转，Wireframe框架（上）]]></title>
@@ -401,62 +451,6 @@ NSBlockOperation *op = [[[NSBlockOperation alloc] init] autorelease];
     [self doSomething];
 }];
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[iOS UITableView 使用小贴士]]></title>
-    <link href="http://sherlockyao.com/blog/2015/06/28/uitableview-tips/"/>
-    <updated>2015-06-28T15:27:00+08:00</updated>
-    <id>http://sherlockyao.com/blog/2015/06/28/uitableview-tips</id>
-    <content type="html"><![CDATA[<p>UITableView 可以说是搭建应用时必不可少的控件之一，同时也是最常见、遇到最多自定义需求的控件之一，所以今天这里总结了几个平时使用时的小技巧，给自己备忘的同时也分享给大家。</p>
-
-<h3>> 去除多余的Separator</h3>
-
-<p>有时，我们会使用到table view自带的行分隔线样式，但是会遇到一个问题，就是当列表内没有cell时，或者cell数量不足以填充列表可见高度时，列表仍然会显示额外的分隔线。一个快速的解决方案是给table view设置一个空白的footer view：</p>
-
-<pre><code class="objc">
-tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
-</code></pre>
-
-<h3>> 设置初始显示位置</h3>
-
-<p>在一些用例场景中，我们会要求当用户进入到一个列表页面时，他需要首先看到列表最底部的cell（或者其他一些位置不在top的cell）。通常我们第一反应便是在 UIViewController 的 viewWillAppear: 方法中用代码把table view滚动到需要的位置，但实际上这个方案并不奏效（造成这个的原因是，在viewWillAppear的这个阶段，view还没有真正地去layout，所以table view此时还不知道它真正的content size，也就无法滚动到正确的位置）；紧接着，我们会尝试把代码移动到 viewDidAppear: 方法中，结果确实起作用了，但是用户会在视觉上看到一个滚动的过程，所以并不理想。这里提供一种比较trick的解决方案来处理这个问题：</p>
-
-<pre><code class="objc">
-- (void)viewDidLayoutSubviews {
-    [super viewDidLayoutSubviews];
-
-    if (!self.hasFinishedLayoutView) {
-        self.hasFinishedLayoutView = YES; // 这里用一个flag来避免多次执行
-
-        [self.tableView layoutIfNeeded];
-
-        NSIndexPath* indexPath = ...; // 定义要滚动到的位置
-        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:NO];
-    }
-}
-</code></pre>
-
-<p>我们把滚动代码移到 viewDidLayoutSubviews 这个生命周期方法中去，这样就可以成功了。注意一点：我这里手动调用了一下table view的layoutIfNeeded方法，因为在我的实践中，我的view都是用autolayout来构建的，如果这里不手动layout一下，table view的内容大小在这个阶段还是不正确的。</p>
-
-<h3>> 随着Cell一起滚动的Section Header</h3>
-
-<p>UITableView的section header view有一个自带的炫酷功能，就是浮动(floating)，当列表滚动的时候，它会自动附着在顶部直到其他Section的内容把它顶掉。但是我们有时候不想要这样的效果，我们希望它能跟着cell一起滚动，那应该怎么处理呢？很不幸的是，官方公开的API中并不提供这种选项，那怎么办呢？我自己选择的一种解决方案就是，用cell的方式来实现header的功能：1）去掉所有section header的定义； 2）自己维护好DataSource的index path关系，每个section的第一行是header cell，接下去的才是真正展示数据的cell。</p>
-
-<h3>> 自适应高度的Cell（Self-Sizing Cell）</h3>
-
-<p>关于这个话题，网上已经有很多教程了，我这里就不再赘述，而是列出一些关键点以供备忘用。因为要能灵活运用这个功能，了解其原理是很重要的，tips只是为了不违背“好记性不如烂笔头”这个亘古不变的告诫，所以如果大家对其仍一知半解的话，建议看WWDC官方视频深入了解一下。<a href="https://developer.apple.com/videos/wwdc/2014/#226">视频链接请戳这里</a></p>
-
-<p>下面是一些要点：</p>
-
-<ul>
-<li><p>把UITableView的<strong>rowHeight</strong>属性设置成<strong>UITableViewAutomaticDimension</strong></p></li>
-<li><p>把UITableView的<strong>estimatedRowHeight</strong>属性设置成适合实际情况的估算值</p></li>
-<li><p>如果使用Autolayout约束的方式来定义cell的高度，一定要加足够多的约束，从而能让cell通过这些约束计算出对应的高度。比如：一个只显示一个UILabel的cell，我们要给label同时加上距离ContentView top和bottom两个约束，这样cell才能通过label内容的高度，再加上上下距离来确定cell需要的实际高度是多少。</p></li>
-<li><p>一般涉及到动态高度的情况都会有UILabel元素的加入，所以如果想要通过label的内容来扩大cell高度的话，记得要把numberOfLines属性设置成0</p></li>
-</ul>
-
 ]]></content>
   </entry>
   
