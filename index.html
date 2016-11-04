@@ -9,7 +9,7 @@
   <meta name="author" content="Sherlock Yao">
 
   
-  <meta name="description" content="笔者也已经写过不少的app了，在每个app的开发过程中，一个亘古不变的需求就是页面之间的跳转。虽然这是个非常不起眼的功能，有时候你简单的一行 pushViewController:XXX 代码就搞定了，但它也有着大学问。 试想这样一个场景：项目初期，需求很简单，A界面中点击某个按钮需要跳转到B， &hellip;">
+  <meta name="description" content="上篇我解释了Wireframe框架的大体思路和跳转逻辑，这次我具体说明一下里面的builder, navigator和transition的概念。 Builder Builder顾名思义就是用来实例化目标View Controller的工厂。在Wireframe中实例化View &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -54,6 +54,99 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/11/04/wireframe-framework-2/">更轻松地页面跳转，Wireframe框架（下）</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-04T16:04:37+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2016/11/04/wireframe-framework-2/#disqus_thread"
+             data-disqus-identifier="http://sherlockyao.com/blog/2016/11/04/wireframe-framework-2/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>上篇我解释了Wireframe框架的大体思路和跳转逻辑，这次我具体说明一下里面的builder, navigator和transition的概念。</p>
+
+<h3>Builder</h3>
+
+<p>Builder顾名思义就是用来实例化目标View Controller的工厂。在Wireframe中实例化View Controller有两种方法：1）通过storyboard初始化 2）通过代码。下图是配置文件中相应的配置内容：</p>
+
+<p><img src="/images/20161104/decodes.png" title="" alt="File Inspector" /></p>
+
+<p>可见，如果View Controller被画在了storyboard中，那么只要提供对应的storyboard文件名称，以及对应的view controller id，那么wireframe会自动通过storyboard来实例化。如果要使用代码实例化(包括从xib文件加载页面)，那么就需要通过配置builder来实现。首先需要在配置文件中配置对应的builder code，然后通过调用wireframe实例的register方法去注册对应的builder即可，示例代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">builderName</span><span class="p">:</span> <span class="s">&quot;product&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">UIViewController</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">productViewController</span> <span class="o">=</span> <span class="n">ProductViewController</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">productViewController</span><span class="p">.</span><span class="n">productName</span> <span class="o">=</span> <span class="n">params</span><span class="o">?</span><span class="p">[</span><span class="n">WireframeParam</span><span class="p">.</span><span class="n">name</span><span class="p">.</span><span class="n">rawValue</span><span class="p">]</span> <span class="kt">as</span><span class="o">?</span> <span class="n">String</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">productViewController</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">builderName</span><span class="p">:</span> <span class="s">&quot;seller&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">UIViewController</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">SellerViewController</span><span class="p">(</span><span class="nl">nibName</span><span class="p">:</span> <span class="s">&quot;SellerViewController&quot;</span><span class="p">,</span> <span class="nl">bundle</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体的实例化方式，是根据你具体的业务逻辑需求来的，方法所传递的params参数，是页面跳转时所传的额外参数(optional)，你可以根据具体需要来定制目标view controller的初始化过程。目前框架只提供了一个简单的UIAlertController的默认builder。</p>
+
+<h3>Navigator</h3>
+
+<p>Navigator则是负责具体跳转的接口。它和Builder的使用方法类似，在配置文件中配置对应的name/code，然后通过register方法注册对应的navigator实现到wireframe中去。框架默认提供了7个常用的跳转方式，比如：present(Animated or Not Animated)，push(Animated or Not Animated)，如果app的跳转方式比较简单，那么默认的navigators就已经足够满足需求了。下面的代码演示了如果注册一个navigator，它的作用就是给目标view controller包上一个navigation controller再做跳转：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">register</span><span class="p">(</span><span class="nl">navigatorName</span><span class="p">:</span> <span class="s">&quot;navigation-wrap&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">sourceViewController</span><span class="p">,</span> <span class="n">destinationViewController</span><span class="p">,</span> <span class="n">completion</span><span class="p">)</span> <span class="k">in</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">navigationController</span> <span class="o">=</span> <span class="bp">UINavigationController</span><span class="p">(</span><span class="nl">rootViewController</span><span class="p">:</span> <span class="n">destinationViewController</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sourceViewController</span><span class="p">.</span><span class="n">present</span><span class="p">(</span><span class="n">navigationController</span><span class="p">,</span> <span class="nl">animated</span><span class="p">:</span> <span class="nb">false</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="n">completion</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Transition</h3>
+
+<p>有些时候，我们需要给跳转过程加特定的动画效果，这就需要我们用到类似UIViewControllerAnimatedTransitioning这样的技术，wireframe也提供了配置的方式，每个Wireframe实例有一个optional的transition接口变量，你可以设置成自己实现的transition接口，每当wireframe完成目标view controller的初始化后，就会调用对应的接口方法来配置需要的transition，你可以通过判断soure和destination的类型来选择对应的动画效果。</p>
+
+<p>目前transition这个配置的方式还不是很完美，会有很多类型判断的代码在里面，如果大家有好的建议欢迎给我留言：）</p>
+
+<p>最后要说的是，对于大型的项目而言，一个项目中可以有多个wireframe存在，每个wireframe负责某个模块内部的调度，然后再由一个总的wireframe来负责模块间的调度，这样可以使结构更清晰，可维护性更强。这个是框架的<a href="https://github.com/sherlockyao/SYWireframe">Github链接</a>，欢迎大家提供宝贵意见和建议。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -918,53 +1011,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Core Data 中‘一对一’到‘一对多’关系的轻量级迁移</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-06-08T14:14:00+08:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/#disqus_thread"
-             data-disqus-identifier="http://sherlockyao.com/blog/2015/06/08/core-data-migration-from-to-one-to-to-many/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这次分享一个关于 Core Data 数据迁移的小经验。工作中遇到需求，要将原有数据结构中的一个 To-One 关系改成 To-Many（比方说把一个 Book 对应一个 Author 的关系改成对应多个 Authors）。根据 Core Data 的文档：</p>
-
-<blockquote><p>Changing a relationship from a to-one to a to-many, or a non-ordered to-many to ordered (and visa-versa)</p></blockquote>
-
-<p>轻量级迁移（Lightweight Migration）是完全可以做到的。于是立刻添加了新的 Model Version，然后修改了对应的 relationship，同时也把对应 Managed Object 中的 property 手动改成 NSSet，以及添加了 add 和 remove 的方法（当然也可以用 Xcode 去自动生成新的类文件）。在调整了对应的逻辑代码后运行应用，发现迁移是成功的，数据没有丢失，但是原先那个一对一的关系数据没有迁移到新的一对多关系里（也就是所有 Book 和 Author 的对应关系消失了）。</p>
-
-<p>看这个现象，数据是没有丢失的，所以应该是原来的对应关系没有顺利转化到新的这个多对多关系表中。回想整个迁移过程，我意识到一点，就是我把 Book 中原来的 author 属性改名成了 authors，这在逻辑上讲是理所当然的，但程序可没那么智能，所以应该是这里出了问题。</p>
-
-<p>解决方法：在Xcode中选择 authors 这个关系，然后在右边的 Inspector 中找到 &ldquo;Renaming ID&rdquo; 这个选项，在里面填上 &ldquo;author"，这样程序才能知道这个属性是从原来的 author 属性改名而来，数据当然也能成功迁移了。果然再次把应用回退到老版本后安装新版本，对应关系顺利地展示了出来。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -993,6 +1039,10 @@
   <section>
   <h1>Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/04/wireframe-framework-2/">更轻松地页面跳转，Wireframe框架（下）</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2016/11/04/wireframe-framework/">更轻松地页面跳转，Wireframe框架（上）</a>
@@ -1044,10 +1094,6 @@
     
       <li class="post">
         <a href="/blog/2015/01/06/blur-effect-view/">iOS的毛玻璃效果View</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/10/deploy-node-project/">如何部署一个Node.js项目</a>
       </li>
     
   </ul>
